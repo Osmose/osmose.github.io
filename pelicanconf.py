@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 AUTHOR = u'Michael Kelly'
-SITENAME = u'code, games, etc.'
+SITENAME = u'Michael Kelly <Osmose>'
 SITEURL = ''
 
 TIMEZONE = 'America/New_York'
@@ -26,7 +26,7 @@ SOCIAL = (
 
 DEFAULT_PAGINATION = False
 
-THEME = 'themes/Just-Read'
+THEME = 'themes/tuxlite_tbs'
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
