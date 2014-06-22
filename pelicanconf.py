@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 AUTHOR = u'Michael Kelly'
 SITENAME = u'Michael Kelly <Osmose>'
 SITEURL = ''
+DISQUS_SITENAME = 'mkelly'
 
 TIMEZONE = 'America/New_York'
 
