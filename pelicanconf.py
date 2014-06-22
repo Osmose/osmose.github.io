@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 AUTHOR = u'Michael Kelly'
-SITENAME = u'Michael Kelly <Osmose>'
-SITEURL = ''
+SITENAME = u'Michael Kelly'
+SITEURL = 'http://localhost:8000'
 DISQUS_SITENAME = 'mkelly'
 
 TIMEZONE = 'America/New_York'
