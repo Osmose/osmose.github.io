@@ -9,14 +9,14 @@
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
-    <script src="../theme/html5.js"></script>
+    <script src="./theme/html5.js"></script>
     <![endif]-->
 
     <!-- Le styles -->
-    <link href="../theme/bootstrap.min.css" rel="stylesheet">
-    <link href="../theme/bootstrap.min.responsive.css" rel="stylesheet">
-    <link href="../theme/local.css" rel="stylesheet">
-    <link href="../theme/pygments.css" rel="stylesheet">
+    <link href="./theme/bootstrap.min.css" rel="stylesheet">
+    <link href="./theme/bootstrap.min.responsive.css" rel="stylesheet">
+    <link href="./theme/local.css" rel="stylesheet">
+    <link href="./theme/pygments.css" rel="stylesheet">
 
 </head>
 
@@ -32,12 +32,12 @@
              <span class="icon-bar"></span>
          </a>
 
-        <a class="brand" href="..">Michael Kelly</a>
+        <a class="brand" href=".">Michael Kelly</a>
 
         <div class="nav-collapse">
         <ul class="nav">
 
-            <li><a href="../pages/about.html">About Me</a></li>
+            <li><a href="./pages/about.html">About Me</a></li>
         </ul>
         </div>
 
@@ -50,23 +50,17 @@
     <div class="row">
 
         <div class="span9">
-        
-
-        
-
-
     <div class='article'>
         <div class="content-title">
-            <a href="../what-is-a-snippet.html"><h1>What is an about:home snippet?</h1></a>
+            <h1>What is an about:home snippet?</h1>
 Mon 30 June 2014
 
-by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
+by <a class="url fn" href="./author/michael-kelly.html">Michael Kelly</a>
  
 
 
- 
         </div>
-        
+	
         <div><p>I was reading Adam Lofting's post, <a href="http://adamlofting.com/1139/the-power-of-webmaker-landing-pages/"><em>The Power of Webmaker Landing Pages</em></a>, and it referred to something called "The Snippet", and linked to a post on fundraising.mozilla.org called <a href="https://fundraising.mozilla.org/what-is-the-snippet/"><em>What is the "snippet"?</em></a>.</p>
 <p>The page the fundraising blog refers to is actually called <a href="about:home">about:home</a>; the icon and bit of text below the search bar is the "snippet". Every time you view about:home, a snippet is randomly chosen from a set of snippets and shown. Once every 24 hours, the set of snippets you might see is updated. Snippets can execute JavaScript code, which allows things like snippets that replace the Firefox logo or snippets that show videos.</p>
 <p>To understand how about:home snippets really work, you have to understand the two main players: Firefox and the Snippets Service.</p>
@@ -88,57 +82,23 @@ by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
 <h2>You Can Too!</h2>
 <p>An about:home snippet is a powerful way of reaching a huge number of people. If you're interested in running a snippet to spread the word about something, file a bug under the <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Snippets&amp;component=Campaign">Snippets :: Campaign Bugzilla component</a>. The snippets content team will review your request and determine if your snippet should be accepted.</p>
 <p>Have any more questions about how snippets work? Let me know, I'm happy to answer them!</p></div>
-        <hr />
+	
+        <hr>
+
+        <h2>Comments</h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'mkelly';
+    var disqus_title = 'What is an about:home snippet?';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
     </div>
-		
-
- 
-        
-
- 
-
-    <div class='article'>
-        <a href="../affiliates-mailing-list.html"><h2>Affiliates Mailing List PLS EMAIL US</h2></a>
-        <div class= "well small"> Tue 15 April 2014
-
-by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
- 
-
-
- </div>
-        <div class="summary"><p>affiliates@lists.mozilla.org is up and moderated again and ready for use.</p> <a class="btn btn-info xsmall" href="../affiliates-mailing-list.html">read more</a></div>
-    </div>	
-				
-
- 
-        
-
- 
-
-    <div class='article'>
-        <a href="../hello-world.html"><h2>Hello World!</h2></a>
-        <div class= "well small"> Tue 15 April 2014
-
-by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
- 
-
-
- </div>
-        <div class="summary"><p>Testing out if Pelican works.</p> <a class="btn btn-info xsmall" href="../hello-world.html">read more</a></div>
-    </div>	
-				
-<div class="pagination">
-<ul>
-    <li class="prev disabled"><a href="#">&larr; Previous</a></li>
-
-    <li class="active"><a href="../author/michael-kelly.html">1</a></li>
-
-    <li class="next disabled"><a href="#">&rarr; Next</a></li>
-
-</ul>
-</div>
- 
-  
         </div>
 
         <div class="span3">
@@ -149,8 +109,8 @@ by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
                 Site
                 </li>
 
-                <li><a href="../">Archives</a>
-                <!--<li><a href="../tags.html">Tags</a>
+                <li><a href="./">Archives</a>
+                <!--<li><a href="./tags.html">Tags</a>
                 <li><a href="http://www.mkelly.me/" rel="alternate">Atom feed</a></li>
 -->
             </ul>
@@ -163,8 +123,8 @@ by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
                 Categories
                 </li>
 
-                <li><a href="../category/mozilla.html">mozilla</a></li>
-                <li><a href="../category/test.html">test</a></li>
+                <li><a href="./category/mozilla.html">mozilla</a></li>
+                <li><a href="./category/test.html">test</a></li>
             </ul>
             </div>
 
@@ -187,7 +147,7 @@ by <a class="url fn" href="../author/michael-kelly.html">Michael Kelly</a>
         </div>     </div>     </div> 
 <footer>
 <br />
-<p><a href="..">Michael Kelly</a> &copy; Michael Kelly 2012</p>
+<p><a href=".">Michael Kelly</a> &copy; Michael Kelly 2012</p>
 </footer>
 
 </div> <!-- /container -->
