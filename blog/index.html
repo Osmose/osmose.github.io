@@ -1,0 +1,101 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../static/style.css">
+<link rel="stylesheet" href="../static/pygments.css">
+<title> — mkelly.me</title>
+<body>
+  <header>
+    <span class="avatar"></span>
+    <h1>Michael Kelly</h1>
+    <nav>
+      <ul class="nav navbar-nav">
+        <li >
+          <a href="../">About</a>
+        </li>
+        <li  class="active">
+          <a href="../blog/">Blog</a>
+        </li>
+        <li><a href="https://twitter.com/osmose">@Osmose</a></li>
+        <li><a href="https://github.com/osmose/">Github</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="page">
+    
+  
+    
+  <div class="blog-post">
+  
+    <h2><a href="../blog/caching-async-operations-via-promises/">Caching Async Operations via Promises</a></h2>
+  
+  <p class="meta">
+    written on 2016-08-22
+  </p>
+  <p>I was working on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1293475">a bug in Normandy</a> the other day and remembered a fun little trick for caching asynchronous operations in JavaScript.</p>
+<p>The bug in question involved two asynchronous actions happening within a function. First, we made an AJAX request to the server to get an "Action" object. Next, we took an attribute of the action, the <code>implementation_url</code>, and injected a <code>&lt;script&gt;</code> tag into the page with the <code>src</code> attribute set to the URL. The JavaScript being injected would then call a global function and pass it a class function, which was the value we wanted to return.</p>
+<p>The bug was that if we called the function multiple times with the same action, the function would make multiple requests to the same URL, even though we really only needed to download data for each Action once. The solution was to cache the responses, but instead of caching the responses directly, I found it was cleaner to cache the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a> returned when making the request instead:</p>
+<div class="highlight"><pre><span></span><span class="kr">export</span> <span class="kd">function</span> <span class="nx">fetchAction</span><span class="p">(</span><span class="nx">recipe</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="nx">fetchAction</span><span class="p">.</span><span class="nx">_cache</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">recipe</span><span class="p">.</span><span class="nx">action</span> <span class="k">in</span> <span class="nx">cache</span><span class="p">))</span> <span class="p">{</span>
+    <span class="nx">cache</span><span class="p">[</span><span class="nx">recipe</span><span class="p">.</span><span class="nx">action</span><span class="p">]</span> <span class="o">=</span> <span class="nx">fetch</span><span class="p">(</span><span class="sb">`/api/v1/action/</span><span class="si">${</span><span class="nx">recipe</span><span class="p">.</span><span class="nx">action</span><span class="si">}</span><span class="sb">/`</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="o">=&gt;</span> <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">());</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">cache</span><span class="p">[</span><span class="nx">recipe</span><span class="p">.</span><span class="nx">action</span><span class="p">];</span>
+<span class="p">}</span>
+<span class="nx">fetchAction</span><span class="p">.</span><span class="nx">_cache</span> <span class="o">=</span> <span class="p">{};</span>
+</pre></div>
+<p>Another neat trick in the code above is storing the cache as a property on the function itself; it helps avoid polluting the namespace of the module, and also allows callers to clear the cache if they wish to force a re-fetch (although if you actually needed that, it'd be better to add a parameter to the function instead).</p>
+<p>After I got this working, I puzzled for a bit on how to achieve something similar for the <code>&lt;script&gt;</code> tag injection. Unlike an AJAX request, the only thing I had to work with was an <code>onload</code> handler for the tag. Eventually I realized that nothing was stopping me from wrapping the <code>&lt;script&gt;</code> tag injection in a Promise and caching it in exactly the same way:</p>
+<div class="highlight"><pre><span></span><span class="kr">export</span> <span class="kd">function</span> <span class="nx">loadActionImplementation</span><span class="p">(</span><span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kr">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="nx">loadActionImplementation</span><span class="p">.</span><span class="nx">_cache</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span> <span class="k">in</span> <span class="nx">cache</span><span class="p">))</span> <span class="p">{</span>
+    <span class="nx">cache</span><span class="p">[</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">script</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s1">&#39;script&#39;</span><span class="p">);</span>
+      <span class="nx">script</span><span class="p">.</span><span class="nx">src</span> <span class="o">=</span> <span class="nx">action</span><span class="p">.</span><span class="nx">implementation_url</span><span class="p">;</span>
+      <span class="nx">script</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span> <span class="k">in</span> <span class="nx">registeredActions</span><span class="p">))</span> <span class="p">{</span>
+          <span class="nx">reject</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="sb">`Could not find action with name </span><span class="si">${</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">.`</span><span class="p">));</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">resolve</span><span class="p">(</span><span class="nx">registeredActions</span><span class="p">[</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span><span class="p">]);</span>
+        <span class="p">}</span>
+      <span class="p">};</span>
+      <span class="nb">document</span><span class="p">.</span><span class="nx">head</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">script</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">cache</span><span class="p">[</span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span><span class="p">];</span>
+<span class="p">}</span>
+<span class="nx">loadActionImplementation</span><span class="p">.</span><span class="nx">_cache</span> <span class="o">=</span> <span class="p">{};</span>
+</pre></div>
+<p>From a nitpicking standpoint, I'm not entirely happy with this function:</p>
+<ul>
+<li>The name isn't really consistent with the "fetch" terminology from the previous function, but I'm not convinced they should use the same verb either.</li>
+<li>The Promise code could probably live in another function, leaving this one to only concern itself about the caching.</li>
+<li>I'm pretty sure this does nothing to handle the case of the script failing to load, like a 404.</li>
+</ul>
+<p>But these are minor, and the patch got merged, so I guess it's good enough.</p>
+
+  </div>
+
+  
+
+  
+  <div class="pagination">
+    
+      <span class="disabled">&laquo; Previous</span>
+    
+    | 1 |
+    
+      <span class="disabled">Next &raquo;</span>
+    
+  </div>
+
+
+  </div>
+  <footer>
+    &copy; Copyright 2016 by Michael Kelly.
+  </footer>
+</body>
