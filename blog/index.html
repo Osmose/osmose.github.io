@@ -42,7 +42,7 @@
     <h2><a href="../blog/content-uitourjs/">content-UITour.js</a></h2>
   
   <p class="meta">
-    written on 2017-04-25
+    published on April 25, 2017
   </p>
   <p>Recently I found myself trying to comprehend an unfamiliar piece of code. In this case, it was <a href="https://dxr.mozilla.org/mozilla-central/source/browser/components/uitour/content-UITour.js"><code>content-UITour.js</code></a>, a file that handles the interaction between unprivileged webpages and <a href="https://dxr.mozilla.org/mozilla-central/source/browser/components/uitour/UITour.jsm"><code>UITour.jsm</code></a>.</p>
 <p><a href="http://bedrock.readthedocs.io/en/latest/uitour.html">UITour</a> allows webpages to highlight buttons in the toolbar, open menu panels, and perform other tasks involved in giving Firefox users a tour of the user interface. The event-based API allows us to iterate quickly on the onboarding experience for Firefox by controlling it via easily-updated webpages. Only a small set of Mozilla-owned domains are allowed access to the UITour API.</p>
@@ -260,7 +260,7 @@ origin    uitour    1    about:home
     <h2><a href="../blog/caching-async-operations-via-promises/">Caching Async Operations via Promises</a></h2>
   
   <p class="meta">
-    written on 2016-08-22
+    published on August 22, 2016
   </p>
   <p>I was working on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1293475">a bug in Normandy</a> the other day and remembered a fun little trick for caching asynchronous operations in JavaScript.</p>
 <p>The bug in question involved two asynchronous actions happening within a function. First, we made an AJAX request to the server to get an "Action" object. Next, we took an attribute of the action, the <code>implementation_url</code>, and injected a <code>&lt;script&gt;</code> tag into the page with the <code>src</code> attribute set to the URL. The JavaScript being injected would then call a global function and pass it a class function, which was the value we wanted to return.</p>

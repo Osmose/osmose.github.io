@@ -41,7 +41,7 @@
     <h2>Caching Async Operations via Promises</h2>
   
   <p class="meta">
-    written on 2016-08-22
+    published on August 22, 2016
   </p>
   <p>I was working on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1293475">a bug in Normandy</a> the other day and remembered a fun little trick for caching asynchronous operations in JavaScript.</p>
 <p>The bug in question involved two asynchronous actions happening within a function. First, we made an AJAX request to the server to get an "Action" object. Next, we took an attribute of the action, the <code>implementation_url</code>, and injected a <code>&lt;script&gt;</code> tag into the page with the <code>src</code> attribute set to the URL. The JavaScript being injected would then call a global function and pass it a class function, which was the value we wanted to return.</p>

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-04-25T00:00:00Z</updated>
+  <updated>2017-04-25T08:57:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
@@ -12,7 +12,7 @@
   <entry xml:base="http://www.mkelly.me/blog/content-uitourjs/">
     <title type="text">content-UITour.js</title>
     <id>urn:uuid:c7e1ed6c-bce2-3886-bf81-7d202883f4c6</id>
-    <updated>2017-04-25T00:00:00Z</updated>
+    <updated>2017-04-25T08:57:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/content-uitourjs/" />
     <author>
       <name></name>
@@ -228,7 +228,7 @@ origin    uitour    1    about:home
   <entry xml:base="http://www.mkelly.me/blog/caching-async-operations-via-promises/">
     <title type="text">Caching Async Operations via Promises</title>
     <id>urn:uuid:0d1cd96d-5a86-36df-8588-ff6f62c35274</id>
-    <updated>2016-08-22T00:00:00Z</updated>
+    <updated>2016-08-22T09:00:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/caching-async-operations-via-promises/" />
     <author>
       <name></name>
