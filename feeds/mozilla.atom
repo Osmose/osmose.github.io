@@ -2,13 +2,65 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-04-25T08:57:00-07:00</updated>
+  <updated>2017-04-30T06:34:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
     <name></name>
   </author>
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
+  <entry xml:base="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">
+    <title type="text">mailman-admin-helper: Mildly Easier Mailman Spam Management</title>
+    <id>urn:uuid:73c395e9-767c-35c9-99dc-845902f4155a</id>
+    <updated>2017-04-30T06:34:00-07:00</updated>
+    <link href="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/" />
+    <author>
+      <name></name>
+    </author>
+    <content type="html">&lt;p&gt;Mozilla hosts a few &lt;a href=&quot;http://www.list.org/&quot;&gt;Mailman&lt;/a&gt; instances&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png&quot;&gt;&lt;img alt=&quot;Mailman default admindb interface&quot; src=&quot;mailman_before.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The form inputs are &lt;em&gt;tiny&lt;/em&gt;. And it takes, like, 3 clicks to discard and blacklist spam per-sender. And, because I only learned about the options for filtering by spam headers within the past month, I had to use this interface on a daily basis for years.&lt;/p&gt;
+&lt;p&gt;Finally, about a year or so ago, I got fed up and wrote a bookmarklet that auto-clicked every form element needed to discard and blacklist every email on the page. Since it's rare for the lists I moderate to get legitimate emails that are marked for moderation, I didn't need anything more complex.&lt;/p&gt;
+&lt;p&gt;However, we recently updated our Mailman pages to use &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy&quot;&gt;CSP&lt;/a&gt;, specifically the &lt;code&gt;script-src none&lt;/code&gt; directive. Because the pages no longer accept &lt;em&gt;any&lt;/em&gt; URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot; rel=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;Luckily, I happen to have experience making &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/WebExtensions&quot;&gt;WebExtensions&lt;/a&gt; that inject &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Content_scripts&quot;&gt;content scripts&lt;/a&gt; into web pages. It's as simple as creating a &lt;code&gt;manifest.json&lt;/code&gt; file:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;manifest_version&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;mailman-admin-helper&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;version&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;0.1.1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;applications&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;quot;gecko&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;mailman-admin-helper@mkelly.me&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;description&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Adds useful shortcuts to Mozilla Mailman admin.&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;content_scripts&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;quot;matches&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+        &lt;span class=&quot;s2&quot;&gt;&amp;quot;*://mail.mozilla.org/admindb/*&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s2&quot;&gt;&amp;quot;*://lists.mozilla.org/admindb/*&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;quot;js&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;index.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;quot;css&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;index.css&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;content_scripts&lt;/code&gt; key is where the magic happens. List some domains, write some JavaScript and CSS, and you're done! The &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext&quot;&gt;web-ext&lt;/a&gt; tool makes testing, building, and signing the extension pretty painless.&lt;/p&gt;
+&lt;p&gt;An hour or two later, and I had finished my new WebExtension, &lt;a href=&quot;https://github.com/Osmose/mailman-admin-helper&quot;&gt;mailman-admin-helper&lt;/a&gt;. After it is installed, the admin interface is greatly simplified:&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_after.png&quot;&gt;&lt;img alt=&quot;Mailman admindb interface as modified by the mailman-admin-helper extension&quot; src=&quot;mailman_after.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The block of checkboxes and radio buttons has been replaced by 4 buttons that immediately make their changes and refresh the page when clicked. And if you need to inspect and modify an individual email, you can still click through the email subject to get to the normal moderation page.&lt;/p&gt;
+&lt;p&gt;Granted, it cuts out a lot of functionality, but this extension is mostly meant for myself to use. Pull requests are welcome, though, in case anyone wants to add functionality that they commonly use.&lt;/p&gt;
+&lt;p&gt;Big thanks to the Add-ons team and community for making WebExtensions super-easy to use!&lt;/p&gt;
+&lt;div class=&quot;footnotes&quot;&gt;
+&lt;hr&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;I'm not entirely sure why we have two, but it's cool.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;I did find &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=866522&quot;&gt;bug 866522&lt;/a&gt;, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.&lt;a href=&quot;#fnref-2&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://www.mkelly.me/blog/content-uitourjs/">
     <title type="text">content-UITour.js</title>
     <id>urn:uuid:c7e1ed6c-bce2-3886-bf81-7d202883f4c6</id>
