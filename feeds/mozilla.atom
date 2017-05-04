@@ -2,13 +2,116 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-04-30T06:34:00-07:00</updated>
+  <updated>2017-05-04T01:10:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
     <name></name>
   </author>
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
+  <entry xml:base="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/">
+    <title type="text">Build and Sign WebExtensions with CircleCI</title>
+    <id>urn:uuid:e3a37e08-94ce-3fb9-9de8-e7eb9766e975</id>
+    <updated>2017-05-04T01:10:00-07:00</updated>
+    <link href="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/" />
+    <author>
+      <name></name>
+    </author>
+    <content type="html">&lt;p&gt;Once &lt;a href=&quot;https://planet.mozilla.org/&quot;&gt;Planet Mozilla&lt;/a&gt; updated with my &lt;a href=&quot;../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/&quot;&gt;last post&lt;/a&gt;, I got a few bug reports and feature requests for &lt;a href=&quot;https://github.com/Osmose/mailman-admin-helper&quot;&gt;mailman-admin-helper&lt;/a&gt;, along with a pull request (Thanks, &lt;a href=&quot;https://github.com/wagnerand&quot;&gt;TheOne&lt;/a&gt;!). Clearly I'm not the only person who isn't a fan of our mailing list admin.&lt;/p&gt;
+&lt;p&gt;Before landing anything, I decided to see if I could get automatic builds running so that I wouldn't have to pull a build pull requests myself when I want to test them. What I ended up with, however, does a bit more than that; it also runs lints, and even signs and uploads new releases when I push a new tag.&lt;/p&gt;
+&lt;p&gt;We use &lt;a href=&quot;https://github.com/mozilla/normandy&quot;&gt;CircleCI&lt;/a&gt; on &lt;a href=&quot;https://github.com/mozilla/normandy&quot;&gt;Normandy&lt;/a&gt;, so I defaulted to using them for this as well. I'll walk through the sections, but here's the entire &lt;code&gt;circle.yml&lt;/code&gt; file I ended up with:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
+&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;sudo apt-get update; sudo apt-get install jq&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;go get -u github.com/tcnksm/ghr&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;npm install -g web-ext&lt;/span&gt;
+&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext build&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;mv web-ext-artifacts $CIRCLE_ARTIFACTS&lt;/span&gt;
+&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext lint --self-hosted&lt;/span&gt;
+&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;jq --arg tag &amp;quot;${CIRCLE_TAG:1}&amp;quot; &amp;#39;.version = $tag&amp;#39; manifest.json &amp;gt; tmp.json &amp;amp;&amp;amp; mv tmp.json manifest.json&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;ghr -u Osmose $CIRCLE_TAG web-ext-artifacts&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want to adapt this to your own project, you'll want to change the &lt;code&gt;deployment.release.owner&lt;/code&gt; field to the Github account hosting your WebExtension, and add the following environment variables to your CircleCI project config (&lt;strong&gt;NOT&lt;/strong&gt; your &lt;code&gt;circle.yml&lt;/code&gt; file, which is committed to your repo):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;GITHUB_TOKEN&lt;/code&gt;: A &lt;a href=&quot;https://github.com/settings/tokens&quot;&gt;personal access token&lt;/a&gt; with either the &lt;code&gt;public_repo&lt;/code&gt; or &lt;code&gt;repo&lt;/code&gt; permissions, depending on whether your repository is public or private.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;AMO_API_KEY&lt;/code&gt;: The JWT issuer field from your &lt;a href=&quot;https://addons.mozilla.org/en-US/developers/addon/api/key/&quot;&gt;addons.mozilla.org API Credentials&lt;/a&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;AMO_API_SECRET&lt;/code&gt;: The JWT secret field from your addons.mozilla.org API Credentials.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;How does it work?&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;https://circleci.com/docs/1.0/configuration/&quot;&gt;circle.yml&lt;/a&gt; files are split into phases. Each phase has a default action that is overridden with the &lt;code&gt;override&lt;/code&gt; key.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;machine&lt;/code&gt; phase defines the machine used to run your build. Here we're just making sure that we have a recent version of Node.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;sudo apt-get update; sudo apt-get install jq&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;go get -u github.com/tcnksm/ghr&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;npm install -g web-ext&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;dependencies&lt;/code&gt; step is for installing libraries and programs that your build needs. Our build process has three dependencies:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;https://stedolan.github.io/jq/&quot;&gt;jq&lt;/a&gt;: A command-line JSON processor that we use to replace the version number in &lt;code&gt;manifest.json&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/tcnksm/ghr&quot;&gt;ghr&lt;/a&gt;: A tool for uploading artifacts to Github release pages. Our build image already has a recent version of Go installed, so we install this via [go get][].&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mozilla/web-ext&quot;&gt;web-ext&lt;/a&gt;: Mozilla's command-line tool for building and testing WebExtensions.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext build&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;mv web-ext-artifacts $CIRCLE_ARTIFACTS&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;compile&lt;/code&gt; step is used to build your project before testing. While we aren't running any tests that need a built add-on, this is a good time to build the add-on and upload it to the &lt;code&gt;$CIRCLE_ARTIFACTS&lt;/code&gt; directory, which is saved and made available for download once the build is complete. This makes it easy to pull a ready-to-test build of the add-on from open pull requests.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext lint --self-hosted&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;test&lt;/code&gt; step is for actually running your tests. We don't have automated tests for mailman-admin-helper, but web-ext comes with a handy lint command to help catch common errors.&lt;/p&gt;
+&lt;p&gt;One thing to note about CircleCI is that any commands that return non-zero return codes will stop the build immediately and mark it as failed, &lt;em&gt;except&lt;/em&gt; for commands in the &lt;code&gt;test&lt;/code&gt; step. &lt;code&gt;test&lt;/code&gt; step commands will mark a build as failed, but will not stop other commands in the &lt;code&gt;test&lt;/code&gt; step from running. This is useful for running multiple types of tests or lints because it allows you to see all of your failures instead of exiting early before running all of your tests.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
+    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;jq --arg tag &amp;quot;${CIRCLE_TAG:1}&amp;quot; &amp;#39;.version = $tag&amp;#39; manifest.json &amp;gt; tmp.json &amp;amp;&amp;amp; mv tmp.json manifest.json&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET&lt;/span&gt;
+      &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;ghr -u Osmose $CIRCLE_TAG web-ext-artifacts&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;deployment&lt;/code&gt; section only runs on successful builds, and handles deploying your code. It's made up of multiple named sections, and each section must either have a &lt;code&gt;branch&lt;/code&gt; or &lt;code&gt;tag&lt;/code&gt; field describing the branches or tags that the section will run for.&lt;/p&gt;
+&lt;p&gt;In our case, we're using a regex that matches tags named like version numbers prefixed with &lt;code&gt;v&lt;/code&gt;, e.g. &lt;code&gt;v0.1.2&lt;/code&gt;. We also set the &lt;code&gt;owner&lt;/code&gt; to my Github account so that forks will not run the deployment process.&lt;/p&gt;
+&lt;p&gt;The commands do three things:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Use &lt;code&gt;jq&lt;/code&gt; to modify the &lt;code&gt;version&lt;/code&gt; key in &lt;code&gt;manifest.json&lt;/code&gt; to match the version number from the tag. The &lt;code&gt;v&lt;/code&gt; prefix is removed before the replacement.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Use &lt;code&gt;web-ext&lt;/code&gt; to build and sign the WebExtension, using API keys stored in environment variables. This creates an XPI file in the &lt;code&gt;web-ext-artifacts&lt;/code&gt; directory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Use &lt;code&gt;ghr&lt;/code&gt; to upload the contents of &lt;code&gt;web-ext-artifacts&lt;/code&gt; (which should just by the signed XPI) to the tag on Github. This uses the &lt;code&gt;GITHUB_TOKEN&lt;/code&gt; environment variable for authentication.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The end result is that, whenever a new tag is pushed to the repository, CircleCI adds a signed XPI to the release page on Github automatically, without any human intervention. Convenient!&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Feel free to steal this for your own WebExtension, or share any comments or suggestions either in the comments or directly on the mailman-admin-helper repository. Thanks for reading!&lt;/p&gt;
+</content>
+  </entry>
   <entry xml:base="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">
     <title type="text">mailman-admin-helper: Mildly Easier Mailman Spam Management</title>
     <id>urn:uuid:73c395e9-767c-35c9-99dc-845902f4155a</id>

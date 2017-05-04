@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../../static/style.css">
+  <link rel="stylesheet" href="../../static/pygments.css">
+  <title>Build and Sign WebExtensions with CircleCI — mkelly.me</title>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-48282608-1', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+</head>
+<body>
+  <header>
+    <span class="avatar"></span>
+    <h1>Michael Kelly</h1>
+    <nav>
+      <ul class="nav navbar-nav">
+        <li >
+          <a href="../../">About</a>
+        </li>
+        <li  class="active">
+          <a href="../../blog/">Blog</a>
+        </li>
+        <li><a href="https://twitter.com/osmose">@Osmose</a></li>
+        <li><a href="https://github.com/osmose/">Github</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="page">
+    
+  
+  <div class="blog-post">
+  
+    <h2 class="blog-title">Build and Sign WebExtensions with CircleCI</h2>
+  
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      May 4, 2017
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
+  <p>Once <a href="https://planet.mozilla.org/">Planet Mozilla</a> updated with my <a href="../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">last post</a>, I got a few bug reports and feature requests for <a href="https://github.com/Osmose/mailman-admin-helper">mailman-admin-helper</a>, along with a pull request (Thanks, <a href="https://github.com/wagnerand">TheOne</a>!). Clearly I'm not the only person who isn't a fan of our mailing list admin.</p>
+<p>Before landing anything, I decided to see if I could get automatic builds running so that I wouldn't have to pull a build pull requests myself when I want to test them. What I ended up with, however, does a bit more than that; it also runs lints, and even signs and uploads new releases when I push a new tag.</p>
+<p>We use <a href="https://github.com/mozilla/normandy">CircleCI</a> on <a href="https://github.com/mozilla/normandy">Normandy</a>, so I defaulted to using them for this as well. I'll walk through the sections, but here's the entire <code>circle.yml</code> file I ended up with:</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">machine</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">node</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">version</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">7.10.0</span>
+<span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">sudo apt-get update; sudo apt-get install jq</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">go get -u github.com/tcnksm/ghr</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">npm install -g web-ext</span>
+<span class="l l-Scalar l-Scalar-Plain">compile</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext build</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mv web-ext-artifacts $CIRCLE_ARTIFACTS</span>
+<span class="l l-Scalar l-Scalar-Plain">test</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext lint --self-hosted</span>
+<span class="l l-Scalar l-Scalar-Plain">deployment</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">release</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">/v[0-9]+(\.[0-9]+)*/</span>
+    <span class="l l-Scalar l-Scalar-Plain">owner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Osmose</span>
+    <span class="l l-Scalar l-Scalar-Plain">commands</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">jq --arg tag &quot;${CIRCLE_TAG:1}&quot; &#39;.version = $tag&#39; manifest.json &gt; tmp.json &amp;&amp; mv tmp.json manifest.json</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ghr -u Osmose $CIRCLE_TAG web-ext-artifacts</span>
+</pre></div>
+<p>If you want to adapt this to your own project, you'll want to change the <code>deployment.release.owner</code> field to the Github account hosting your WebExtension, and add the following environment variables to your CircleCI project config (<strong>NOT</strong> your <code>circle.yml</code> file, which is committed to your repo):</p>
+<ul>
+<li><p><code>GITHUB_TOKEN</code>: A <a href="https://github.com/settings/tokens">personal access token</a> with either the <code>public_repo</code> or <code>repo</code> permissions, depending on whether your repository is public or private.</p>
+</li>
+<li><p><code>AMO_API_KEY</code>: The JWT issuer field from your <a href="https://addons.mozilla.org/en-US/developers/addon/api/key/">addons.mozilla.org API Credentials</a>.</p>
+</li>
+<li><p><code>AMO_API_SECRET</code>: The JWT secret field from your addons.mozilla.org API Credentials.</p>
+</li>
+</ul>
+<h3>How does it work?</h3>
+<p><a href="https://circleci.com/docs/1.0/configuration/">circle.yml</a> files are split into phases. Each phase has a default action that is overridden with the <code>override</code> key.</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">machine</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">node</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">version</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">7.10.0</span>
+</pre></div>
+<p>The <code>machine</code> phase defines the machine used to run your build. Here we're just making sure that we have a recent version of Node.</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">dependencies</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">sudo apt-get update; sudo apt-get install jq</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">go get -u github.com/tcnksm/ghr</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">npm install -g web-ext</span>
+</pre></div>
+<p>The <code>dependencies</code> step is for installing libraries and programs that your build needs. Our build process has three dependencies:</p>
+<ul>
+<li><p><a href="https://stedolan.github.io/jq/">jq</a>: A command-line JSON processor that we use to replace the version number in <code>manifest.json</code>.</p>
+</li>
+<li><p><a href="https://github.com/tcnksm/ghr">ghr</a>: A tool for uploading artifacts to Github release pages. Our build image already has a recent version of Go installed, so we install this via [go get][].</p>
+</li>
+<li><p><a href="https://github.com/mozilla/web-ext">web-ext</a>: Mozilla's command-line tool for building and testing WebExtensions.</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">compile</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext build</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mv web-ext-artifacts $CIRCLE_ARTIFACTS</span>
+</pre></div>
+<p>The <code>compile</code> step is used to build your project before testing. While we aren't running any tests that need a built add-on, this is a good time to build the add-on and upload it to the <code>$CIRCLE_ARTIFACTS</code> directory, which is saved and made available for download once the build is complete. This makes it easy to pull a ready-to-test build of the add-on from open pull requests.</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">test</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">override</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext lint --self-hosted</span>
+</pre></div>
+<p>The <code>test</code> step is for actually running your tests. We don't have automated tests for mailman-admin-helper, but web-ext comes with a handy lint command to help catch common errors.</p>
+<p>One thing to note about CircleCI is that any commands that return non-zero return codes will stop the build immediately and mark it as failed, <em>except</em> for commands in the <code>test</code> step. <code>test</code> step commands will mark a build as failed, but will not stop other commands in the <code>test</code> step from running. This is useful for running multiple types of tests or lints because it allows you to see all of your failures instead of exiting early before running all of your tests.</p>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">deployment</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">release</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">/v[0-9]+(\.[0-9]+)*/</span>
+    <span class="l l-Scalar l-Scalar-Plain">owner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Osmose</span>
+    <span class="l l-Scalar l-Scalar-Plain">commands</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">jq --arg tag &quot;${CIRCLE_TAG:1}&quot; &#39;.version = $tag&#39; manifest.json &gt; tmp.json &amp;&amp; mv tmp.json manifest.json</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ghr -u Osmose $CIRCLE_TAG web-ext-artifacts</span>
+</pre></div>
+<p>The <code>deployment</code> section only runs on successful builds, and handles deploying your code. It's made up of multiple named sections, and each section must either have a <code>branch</code> or <code>tag</code> field describing the branches or tags that the section will run for.</p>
+<p>In our case, we're using a regex that matches tags named like version numbers prefixed with <code>v</code>, e.g. <code>v0.1.2</code>. We also set the <code>owner</code> to my Github account so that forks will not run the deployment process.</p>
+<p>The commands do three things:</p>
+<ol>
+<li><p>Use <code>jq</code> to modify the <code>version</code> key in <code>manifest.json</code> to match the version number from the tag. The <code>v</code> prefix is removed before the replacement.</p>
+</li>
+<li><p>Use <code>web-ext</code> to build and sign the WebExtension, using API keys stored in environment variables. This creates an XPI file in the <code>web-ext-artifacts</code> directory.</p>
+</li>
+<li><p>Use <code>ghr</code> to upload the contents of <code>web-ext-artifacts</code> (which should just by the signed XPI) to the tag on Github. This uses the <code>GITHUB_TOKEN</code> environment variable for authentication.</p>
+</li>
+</ol>
+<p>The end result is that, whenever a new tag is pushed to the repository, CircleCI adds a signed XPI to the release page on Github automatically, without any human intervention. Convenient!</p>
+<hr>
+<p>Feel free to steal this for your own WebExtension, or share any comments or suggestions either in the comments or directly on the mailman-admin-helper repository. Thanks for reading!</p>
+
+  </div>
+
+  <div class="comments">
+<div id="disqus_thread"></div>
+<script>
+  var disqus_config = function() { this.page.identifier = "/blog/build-and-sign-webextensions-with-circleci"; this.page.url = "http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/"; };
+  (function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//mkelly.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+</script>
+<noscript>
+  Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript"
+    rel="nofollow">comments powered by Disqus.</a>
+</noscript>
+</div>
+
+  </div>
+  <footer>
+    &copy; Copyright 2016 by Michael Kelly.
+  </footer>
+</body>
+</html>
