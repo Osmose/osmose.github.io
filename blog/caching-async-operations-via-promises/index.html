@@ -38,11 +38,18 @@
   
   <div class="blog-post">
   
-    <h2>Caching Async Operations via Promises</h2>
+    <h2 class="blog-title">Caching Async Operations via Promises</h2>
   
-  <p class="meta">
-    published on August 22, 2016
-  </p>
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      August 22, 2016
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
   <p>I was working on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1293475">a bug in Normandy</a> the other day and remembered a fun little trick for caching asynchronous operations in JavaScript.</p>
 <p>The bug in question involved two asynchronous actions happening within a function. First, we made an AJAX request to the server to get an "Action" object. Next, we took an attribute of the action, the <code>implementation_url</code>, and injected a <code>&lt;script&gt;</code> tag into the page with the <code>src</code> attribute set to the URL. The JavaScript being injected would then call a global function and pass it a class function, which was the value we wanted to return.</p>
 <p>The bug was that if we called the function multiple times with the same action, the function would make multiple requests to the same URL, even though we really only needed to download data for each Action once. The solution was to cache the responses, but instead of caching the responses directly, I found it was cleaner to cache the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a> returned when making the request instead:</p>

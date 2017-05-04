@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="../static/style.css">
   <link rel="stylesheet" href="../static/pygments.css">
-  <title> — mkelly.me</title>
+  <title>Blog — mkelly.me</title>
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -39,11 +39,18 @@
     
   <div class="blog-post">
   
-    <h2><a href="../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">mailman-admin-helper: Mildly Easier Mailman Spam Management</a></h2>
+    <h2 class="blog-title"><a href="../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">mailman-admin-helper: Mildly Easier Mailman Spam Management</a></h2>
   
-  <p class="meta">
-    published on April 30, 2017
-  </p>
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      April 30, 2017
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
   <p>Mozilla hosts a few <a href="http://www.list.org/">Mailman</a> instances<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.</p>
 <p><a href="../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"><img alt="Mailman default admindb interface" src="/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"></a></p>
 <p>The form inputs are <em>tiny</em>. And it takes, like, 3 clicks to discard and blacklist spam per-sender. And, because I only learned about the options for filtering by spam headers within the past month, I had to use this interface on a daily basis for years.</p>
@@ -93,11 +100,18 @@
     
   <div class="blog-post">
   
-    <h2><a href="../blog/content-uitourjs/">content-UITour.js</a></h2>
+    <h2 class="blog-title"><a href="../blog/content-uitourjs/">content-UITour.js</a></h2>
   
-  <p class="meta">
-    published on April 25, 2017
-  </p>
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      April 25, 2017
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
   <p>Recently I found myself trying to comprehend an unfamiliar piece of code. In this case, it was <a href="https://dxr.mozilla.org/mozilla-central/source/browser/components/uitour/content-UITour.js"><code>content-UITour.js</code></a>, a file that handles the interaction between unprivileged webpages and <a href="https://dxr.mozilla.org/mozilla-central/source/browser/components/uitour/UITour.jsm"><code>UITour.jsm</code></a>.</p>
 <p><a href="http://bedrock.readthedocs.io/en/latest/uitour.html">UITour</a> allows webpages to highlight buttons in the toolbar, open menu panels, and perform other tasks involved in giving Firefox users a tour of the user interface. The event-based API allows us to iterate quickly on the onboarding experience for Firefox by controlling it via easily-updated webpages. Only a small set of Mozilla-owned domains are allowed access to the UITour API.</p>
 <h3>Top-level View</h3>
@@ -311,11 +325,18 @@ origin    uitour    1    about:home
     
   <div class="blog-post">
   
-    <h2><a href="../blog/caching-async-operations-via-promises/">Caching Async Operations via Promises</a></h2>
+    <h2 class="blog-title"><a href="../blog/caching-async-operations-via-promises/">Caching Async Operations via Promises</a></h2>
   
-  <p class="meta">
-    published on August 22, 2016
-  </p>
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      August 22, 2016
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
   <p>I was working on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1293475">a bug in Normandy</a> the other day and remembered a fun little trick for caching asynchronous operations in JavaScript.</p>
 <p>The bug in question involved two asynchronous actions happening within a function. First, we made an AJAX request to the server to get an "Action" object. Next, we took an attribute of the action, the <code>implementation_url</code>, and injected a <code>&lt;script&gt;</code> tag into the page with the <code>src</code> attribute set to the URL. The JavaScript being injected would then call a global function and pass it a class function, which was the value we wanted to return.</p>
 <p>The bug was that if we called the function multiple times with the same action, the function would make multiple requests to the same URL, even though we really only needed to download data for each Action once. The solution was to cache the responses, but instead of caching the responses directly, I found it was cleaner to cache the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a> returned when making the request instead:</p>
