@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-06-07T01:10:00-07:00</updated>
+  <updated>2017-06-08T12:41:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
@@ -12,7 +12,7 @@
   <entry xml:base="http://www.mkelly.me/blog/q-is-scary/">
     <title type="text">Q is Scary</title>
     <id>urn:uuid:5faa51c7-3174-3845-a87a-a96da8cc6b62</id>
-    <updated>2017-06-07T01:10:00-07:00</updated>
+    <updated>2017-06-08T12:41:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/q-is-scary/" />
     <author>
       <name></name>
