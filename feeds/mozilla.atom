@@ -2,13 +2,119 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-05-04T01:10:00-07:00</updated>
+  <updated>2017-06-07T01:10:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
     <name></name>
   </author>
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
+  <entry xml:base="http://www.mkelly.me/blog/q-is-scary/">
+    <title type="text">Q is Scary</title>
+    <id>urn:uuid:5faa51c7-3174-3845-a87a-a96da8cc6b62</id>
+    <updated>2017-06-07T01:10:00-07:00</updated>
+    <link href="http://www.mkelly.me/blog/q-is-scary/" />
+    <author>
+      <name></name>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/zestyping/q&quot;&gt;q&lt;/a&gt; is the hands-down winner of my &quot;Libraries I'm Terrified Of&quot; award. It's a Python library for outputting debugging information while running a program.&lt;/p&gt;
+&lt;p&gt;On the surface, everything seems fine. It logs everything to &lt;code&gt;/tmp/q&lt;/code&gt; (configurable), which you can watch with &lt;code&gt;tail -f&lt;/code&gt;. The basic form of q is passing it a variable:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;q&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;foo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Take a good long look at that code sample, and then answer me this: What is the type of q?&lt;/p&gt;
+&lt;p&gt;If you said &quot;callable module&quot;, you are right. Also, that is not a thing that exists in Python.&lt;/p&gt;
+&lt;p&gt;Also, check out the output in &lt;code&gt;/tmp/q&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;0.0s &amp;lt;module&amp;gt;: foo=7
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;It knows the variable name.&lt;/em&gt; It also knows that it's being called at the module level; if we were in a function, &lt;code&gt;&amp;lt;module&amp;gt;&lt;/code&gt; would be replaced with the name of the function.&lt;/p&gt;
+&lt;p&gt;You can also divide (&lt;code&gt;/&lt;/code&gt;) or bitwise OR (&lt;code&gt;|&lt;/code&gt;) values with q to log them as well. And you can decorate a function with it to trace the arguments and return value. It also has a method, &lt;code&gt;q.d()&lt;/code&gt;, that starts an interactive session.&lt;/p&gt;
+&lt;p&gt;And it does all this in under 400 lines, the majority of which is either a docstring or code to format the output.&lt;/p&gt;
+&lt;figure&gt;
+    &lt;img alt=&quot;Spooky&quot; src=&quot;/blog/q-is-scary/napstablook.gif&quot;&gt;
+    &lt;figcaption&gt;Spooky.&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;h2&gt;How in the Hell&lt;/h2&gt;
+&lt;p&gt;So first, let's get this callable module stuff out of the way. Here's the last two lines in &lt;code&gt;q.py&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;# Install the Q() object in sys.modules so that &amp;quot;import q&amp;quot; gives a callable q.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;q&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Turns out &lt;code&gt;sys.modules&lt;/code&gt; is a dictionary with all the loaded modules, and you can just stuff it with whatever nonsense you like.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;Q&lt;/code&gt; class itself is super-fun. Check out the declaration:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;# When we insert Q() into sys.modules, all the globals become None, so we&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# have to keep everything we use inside the Q class.&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;vm&quot;&gt;__doc__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;vm&quot;&gt;__doc__&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;# from the module&amp;#39;s __doc__ above&lt;/span&gt;
+
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;ast&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;code&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;inspect&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pydoc&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;random&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;re&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;functools&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;&quot;When we insert Q() into sys.modules, all the globals become None&quot;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;What? Why?! I mean I can see how that's not an issue for modules, which are usually the only things inside &lt;code&gt;sys.modules&lt;/code&gt;, but still. I tried chasing this down, but the entire &lt;code&gt;sys&lt;/code&gt; module is &lt;a href=&quot;https://github.com/python/cpython/blob/48fb766f70d9ca9d5934cbddbe8d8e7972cb6343/Python/sysmodule.c&quot;&gt;written in C&lt;/a&gt;, and that ain't my business.&lt;/p&gt;
+&lt;p&gt;Most of the other bits inside &lt;code&gt;Q&lt;/code&gt; are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for &lt;code&gt;__truediv__&lt;/code&gt; and &lt;code&gt;__or__&lt;/code&gt; for those weird operator versions of logging, etc. If you've never heard of callable types&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; before, that's the reason why an instance of this class can be both called as a function and treated as a value.&lt;/p&gt;
+&lt;p&gt;So what's &lt;code&gt;__call__&lt;/code&gt; do?&lt;/p&gt;
+&lt;h2&gt;Ghost Magic&lt;/h2&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;fm&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;sd&quot;&gt;&amp;quot;&amp;quot;&amp;quot;If invoked as a decorator on a function, adds tracing output to the&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;    function; otherwise immediately prints out the arguments.&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inspect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getframeinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_getframe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;# ... snip ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Welcome to the &lt;a href=&quot;https://docs.python.org/3/library/inspect.html&quot;&gt;inspect module&lt;/a&gt;. Turns out, Python has a built-in module that lets you get all sorts of fun info about objects, classes, etc. It also lets you get info about &lt;strong&gt;stack frames&lt;/strong&gt;, which store the state of each subroutine in the chain of subroutine calls that led to running the code that's currently executing.&lt;/p&gt;
+&lt;p&gt;Here, q is using a CPython-specific function &lt;code&gt;sys._getframe&lt;/code&gt; to get a frame object for the code that called q, and then using inspect to get info about that code.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;# info.index is the index of the line containing the end of the call&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# expression, so this gets a few lines up to the end of the expression.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;code_context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;code_context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# If we see &amp;quot;@q&amp;quot; on a single line, behave like a trace decorator.&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;line&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;line&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;strip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;@q&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;@q()&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;...and then it just does a text search of the source code to figure out if it was called as a function or as a decorator. Because it can't just guess by the type of the argument being passed (you might want to log a function object), and it can't just return a callable that can be used as a decorator either.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;trace&lt;/code&gt; is pretty normal, whatever that means. It just logs the intercepted arguments and return value / raised exception.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;# Otherwise, search for the beginning of the call expression; once it&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# parses, use the expressions in the call to label the debugging&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# output.&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_call_exprs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:])&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;replace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The last bit pulls out labels from the source code; this is how q knows the name of the variable that you pass in. I'm not going to go line-by-line through &lt;code&gt;get_call_exprs&lt;/code&gt;, but it uses the &lt;a href=&quot;https://docs.python.org/3/library/ast.html&quot;&gt;ast&lt;/a&gt; module to parse the function call into an Abstract Syntax Tree, and walks through that to find the variable names.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;It goes without saying that you should never do any of this. Ever. Nothing is sacred when it comes to debugging, though, and q is incredibly useful when you're having trouble getting your program to print anything out sanely.&lt;/p&gt;
+&lt;p&gt;Also, if you're ever bored on a nice summer evening, check out the &lt;a href=&quot;https://docs.python.org/3/library/index.html&quot;&gt;list of modules in the Python standard library&lt;/a&gt;. It's got &lt;em&gt;everything&lt;/em&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/tracemalloc.html&quot;&gt;Tracing memory allocations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/gc.html&quot;&gt;Controlling the garbage collector&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/tabnanny.html&quot;&gt;Linting python files for ambiguous indentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/difflib.html&quot;&gt;Computing diffs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/weakref.html&quot;&gt;Weakrefs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/atexit.html&quot;&gt;Running code when your program exits&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/wave.html&quot;&gt;Manipulating wave audio files&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;footnotes&quot;&gt;
+&lt;hr&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html&quot;&gt;Check out this page&lt;/a&gt; and search for &quot;Callable Types&quot; and/or &lt;code&gt;__call__&lt;/code&gt;.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/">
     <title type="text">Build and Sign WebExtensions with CircleCI</title>
     <id>urn:uuid:e3a37e08-94ce-3fb9-9de8-e7eb9766e975</id>

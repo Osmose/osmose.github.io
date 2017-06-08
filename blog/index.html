@@ -39,6 +39,121 @@
     
   <div class="blog-post">
   
+    <h2 class="blog-title"><a href="../blog/q-is-scary/">Q is Scary</a></h2>
+  
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      June 7, 2017
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla
+    </span>
+  </div>
+  <p><a href="https://github.com/zestyping/q">q</a> is the hands-down winner of my "Libraries I'm Terrified Of" award. It's a Python library for outputting debugging information while running a program.</p>
+<p>On the surface, everything seems fine. It logs everything to <code>/tmp/q</code> (configurable), which you can watch with <code>tail -f</code>. The basic form of q is passing it a variable:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">q</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">q</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+</pre></div>
+<p>Take a good long look at that code sample, and then answer me this: What is the type of q?</p>
+<p>If you said "callable module", you are right. Also, that is not a thing that exists in Python.</p>
+<p>Also, check out the output in <code>/tmp/q</code>:</p>
+<pre><code>0.0s &lt;module&gt;: foo=7
+</code></pre>
+<p><em>It knows the variable name.</em> It also knows that it's being called at the module level; if we were in a function, <code>&lt;module&gt;</code> would be replaced with the name of the function.</p>
+<p>You can also divide (<code>/</code>) or bitwise OR (<code>|</code>) values with q to log them as well. And you can decorate a function with it to trace the arguments and return value. It also has a method, <code>q.d()</code>, that starts an interactive session.</p>
+<p>And it does all this in under 400 lines, the majority of which is either a docstring or code to format the output.</p>
+<figure>
+    <img alt="Spooky" src="/blog/q-is-scary/napstablook.gif">
+    <figcaption>Spooky.</figcaption>
+</figure><h2>How in the Hell</h2>
+<p>So first, let's get this callable module stuff out of the way. Here's the last two lines in <code>q.py</code>:</p>
+<div class="highlight"><pre><span></span><span class="c1"># Install the Q() object in sys.modules so that &quot;import q&quot; gives a callable q.</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Q</span><span class="p">()</span>
+</pre></div>
+<p>Turns out <code>sys.modules</code> is a dictionary with all the loaded modules, and you can just stuff it with whatever nonsense you like.</p>
+<p>The <code>Q</code> class itself is super-fun. Check out the declaration:</p>
+<div class="highlight"><pre><span></span><span class="c1"># When we insert Q() into sys.modules, all the globals become None, so we</span>
+<span class="c1"># have to keep everything we use inside the Q class.</span>
+<span class="k">class</span> <span class="nc">Q</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="vm">__doc__</span> <span class="o">=</span> <span class="vm">__doc__</span>  <span class="c1"># from the module&#39;s __doc__ above</span>
+
+    <span class="kn">import</span> <span class="nn">ast</span>
+    <span class="kn">import</span> <span class="nn">code</span>
+    <span class="kn">import</span> <span class="nn">inspect</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">pydoc</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="kn">import</span> <span class="nn">functools</span>
+</pre></div>
+<p><strong>"When we insert Q() into sys.modules, all the globals become None"</strong></p>
+<p>What? Why?! I mean I can see how that's not an issue for modules, which are usually the only things inside <code>sys.modules</code>, but still. I tried chasing this down, but the entire <code>sys</code> module is <a href="https://github.com/python/cpython/blob/48fb766f70d9ca9d5934cbddbe8d8e7972cb6343/Python/sysmodule.c">written in C</a>, and that ain't my business.</p>
+<p>Most of the other bits inside <code>Q</code> are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for <code>__truediv__</code> and <code>__or__</code> for those weird operator versions of logging, etc. If you've never heard of callable types<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup> before, that's the reason why an instance of this class can be both called as a function and treated as a value.</p>
+<p>So what's <code>__call__</code> do?</p>
+<h2>Ghost Magic</h2>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;If invoked as a decorator on a function, adds tracing output to the</span>
+<span class="sd">    function; otherwise immediately prints out the arguments.&quot;&quot;&quot;</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inspect</span><span class="o">.</span><span class="n">getframeinfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">context</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="c1"># ... snip ...</span>
+</pre></div>
+<p>Welcome to the <a href="https://docs.python.org/3/library/inspect.html">inspect module</a>. Turns out, Python has a built-in module that lets you get all sorts of fun info about objects, classes, etc. It also lets you get info about <strong>stack frames</strong>, which store the state of each subroutine in the chain of subroutine calls that led to running the code that's currently executing.</p>
+<p>Here, q is using a CPython-specific function <code>sys._getframe</code> to get a frame object for the code that called q, and then using inspect to get info about that code.</p>
+<div class="highlight"><pre><span></span><span class="c1"># info.index is the index of the line containing the end of the call</span>
+<span class="c1"># expression, so this gets a few lines up to the end of the expression.</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">code_context</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">code_context</span><span class="p">[:</span><span class="n">info</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># If we see &quot;@q&quot; on a single line, behave like a trace decorator.</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;@q&#39;</span><span class="p">,</span> <span class="s1">&#39;@q()&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+<p>...and then it just does a text search of the source code to figure out if it was called as a function or as a decorator. Because it can't just guess by the type of the argument being passed (you might want to log a function object), and it can't just return a callable that can be used as a decorator either.</p>
+<p><code>trace</code> is pretty normal, whatever that means. It just logs the intercepted arguments and return value / raised exception.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Otherwise, search for the beginning of the call expression; once it</span>
+<span class="c1"># parses, use the expressions in the call to label the debugging</span>
+<span class="c1"># output.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_call_exprs</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">:])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">break</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">function</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+<p>The last bit pulls out labels from the source code; this is how q knows the name of the variable that you pass in. I'm not going to go line-by-line through <code>get_call_exprs</code>, but it uses the <a href="https://docs.python.org/3/library/ast.html">ast</a> module to parse the function call into an Abstract Syntax Tree, and walks through that to find the variable names.</p>
+<hr>
+<p>It goes without saying that you should never do any of this. Ever. Nothing is sacred when it comes to debugging, though, and q is incredibly useful when you're having trouble getting your program to print anything out sanely.</p>
+<p>Also, if you're ever bored on a nice summer evening, check out the <a href="https://docs.python.org/3/library/index.html">list of modules in the Python standard library</a>. It's got <em>everything</em>:</p>
+<ul>
+<li><a href="https://docs.python.org/3/library/tracemalloc.html">Tracing memory allocations</a></li>
+<li><a href="https://docs.python.org/3/library/gc.html">Controlling the garbage collector</a></li>
+<li><a href="https://docs.python.org/3/library/tabnanny.html">Linting python files for ambiguous indentation</a></li>
+<li><a href="https://docs.python.org/3/library/difflib.html">Computing diffs</a></li>
+<li><a href="https://docs.python.org/3/library/weakref.html">Weakrefs</a></li>
+<li><a href="https://docs.python.org/3/library/atexit.html">Running code when your program exits</a></li>
+<li><a href="https://docs.python.org/3/library/wave.html">Manipulating wave audio files</a></li>
+</ul>
+<div class="footnotes">
+<hr>
+<ol><li id="fn-1"><p><a href="https://docs.python.org/3/reference/datamodel.html">Check out this page</a> and search for "Callable Types" and/or <code>__call__</code>.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+  </div>
+
+  
+    
+  <div class="blog-post">
+  
     <h2 class="blog-title"><a href="../blog/build-and-sign-webextensions-with-circleci/">Build and Sign WebExtensions with CircleCI</a></h2>
   
   <div class="meta">
