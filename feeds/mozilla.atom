@@ -2,13 +2,134 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-06-08T12:41:00-07:00</updated>
+  <updated>2017-07-11T09:50:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
     <name></name>
   </author>
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
+  <entry xml:base="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/">
+    <title type="text">Using NPM Libraries in Firefox via Webpack</title>
+    <id>urn:uuid:98dbb5f4-7b6c-3a25-843b-9e4149135e09</id>
+    <updated>2017-07-11T09:50:00-07:00</updated>
+    <link href="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/" />
+    <author>
+      <name></name>
+    </author>
+    <content type="html">&lt;p&gt;I work on a &lt;a href=&quot;http://gecko.readthedocs.io/en/latest/toolkit/mozapps/extensions/addon-manager/SystemAddons.html&quot;&gt;system add-on&lt;/a&gt; for Firefox called the &lt;a href=&quot;http://normandy.readthedocs.io/en/latest/dev/recipe-client-addon/index.html&quot;&gt;Shield Recipe Client&lt;/a&gt;. We develop it in a &lt;a href=&quot;https://github.com/mozilla/normandy&quot;&gt;monorepo on Github&lt;/a&gt; along with the service it relies on and a few other libraries. One of these libraries is &lt;a href=&quot;https://github.com/mozilla/normandy/tree/master/mozjexl&quot;&gt;mozJexl&lt;/a&gt;, an expression language that we use to specify how to filter experiments and surveys we send to users.&lt;/p&gt;
+&lt;p&gt;The system add-on relies on mozJexl, and for a while we were pulling in the dependency by copying it from &lt;code&gt;node_modules&lt;/code&gt; and using a &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/SDK/Low-Level_APIs/_loader&quot;&gt;custom CommonJS loader&lt;/a&gt; to make &lt;code&gt;require()&lt;/code&gt; calls work properly. This wasn't ideal for a few reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;We had to determine manually which file contained the exports we needed, instead of being able to use the documented exports that you'd get from a &lt;code&gt;require()&lt;/code&gt; call.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Because library files could &lt;code&gt;require()&lt;/code&gt; any other file within &lt;code&gt;node_modules&lt;/code&gt; we copied the entire directory within our add-on.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;We didn't hit this with mozJexl, but I'm pretty sure that if a library we wanted to include had dependencies of its own, our custom loader wouldn't have resolved the paths properly.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;While working on another patch, I hit a point where I wanted to pull in &lt;a href=&quot;http://epoberezkin.github.io/ajv/&quot;&gt;ajv&lt;/a&gt; to do some schema validation and decided to see if I could come up with something better.&lt;/p&gt;
+&lt;h2&gt;Webpack&lt;/h2&gt;
+&lt;p&gt;I already knew that a few components within Firefox are using &lt;a href=&quot;https://webpack.github.io/&quot;&gt;Webpack&lt;/a&gt;, such as &lt;a href=&quot;https://devtools-html.github.io/debugger.html/&quot;&gt;debugger.html&lt;/a&gt; and &lt;a href=&quot;https://testpilot.firefox.com/experiments/activity-stream&quot;&gt;Activity Stream&lt;/a&gt;. As far as I can tell, they bundle all of their code together, which is standard for Webpack.&lt;/p&gt;
+&lt;p&gt;I wanted to avoid this, because we sometimes get fixes from Firefox developers that we upstream back to Github. We also get help in the form of debugging from developers investigating issues that lead back to our add-on. Both of these would be made more difficult by landing webpacked code that is different from the source code we normally work on.&lt;/p&gt;
+&lt;p&gt;Instead, my goal was to webpack only the libraries that we want to use in a way that provided a similar experience to &lt;code&gt;require()&lt;/code&gt;. Here's the Webpack configuration that I came up with:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;cm&quot;&gt;/* eslint-env node */&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ConcatSource&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;webpack-sources&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ConcatSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;LicenseWebpackPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;license-webpack-plugin&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exports&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;__dirname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;entry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;mozjexl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;./node_modules/mozjexl/&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;__dirname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;vendor/&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;filename&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;[name].js&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;library&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;[name]&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;libraryTarget&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;this&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;cm&quot;&gt;/**&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * Plugin that appends &amp;quot;this.EXPORTED_SYMBOLS = [&amp;quot;libname&amp;quot;]&amp;quot; to assets&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * output by webpack. This allows built assets to be imported using&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * Cu.import.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     */&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ExportedSymbols&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;emit&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;entrypoints&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;.js`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Matches output.filename&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ConcatSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;s2&quot;&gt;&amp;quot;/* eslint-disable */&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Disable linting&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+            &lt;span class=&quot;sb&quot;&gt;`this.EXPORTED_SYMBOLS = [&amp;quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;&amp;quot;];`&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Matches output.library&lt;/span&gt;
+          &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;LicenseWebpackPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^(MIT|ISC|MPL.*|Apache.*|BSD.*)$/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;filename&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;sb&quot;&gt;`LICENSE_THIRDPARTY`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;(See also &lt;a href=&quot;https://github.com/mozilla/normandy/pull/877&quot;&gt;the pull request itself&lt;/a&gt;.)&lt;/p&gt;
+&lt;p&gt;Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in &lt;code&gt;node_modules&lt;/code&gt;&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;. The output of this config is one file per entry point inside a &lt;code&gt;vendor&lt;/code&gt; subdirectory. You can then import these files as if they were normal &lt;code&gt;.jsm&lt;/code&gt; files:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Cu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;resource://shield-recipe-client/vendor/mozjexl.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;jexl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;moxjexl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Jexl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;output.library&lt;/h2&gt;
+&lt;p&gt;The key turned out to be Webpack's options for bundling libraries:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://webpack.js.org/configuration/output/#output-library&quot;&gt;&lt;code&gt;output.library&lt;/code&gt;&lt;/a&gt;: Name of the library you want to export.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://webpack.js.org/configuration/output/#output-librarytarget&quot;&gt;&lt;code&gt;output.libraryTarget&lt;/code&gt;&lt;/a&gt;: How you want to expose your library.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;By setting &lt;code&gt;output.library&lt;/code&gt; to a name like &lt;code&gt;mozJexl&lt;/code&gt;, and &lt;code&gt;output.libraryTarget&lt;/code&gt; to &lt;code&gt;this&lt;/code&gt;, you can produce a bundle that assigns the exports from your entry point to &lt;code&gt;this.mozJexl&lt;/code&gt;. In the configuration above, I use the webpack variable &lt;code&gt;[name]&lt;/code&gt; to set it to the name for each export, since we're exporting multiple libraries with one config.&lt;/p&gt;
+&lt;h2&gt;ExportedSymbols&lt;/h2&gt;
+&lt;p&gt;Assuming that the bundle will work in a chrome environment, this is very close to being a &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Using&quot;&gt;JavaScript code module&lt;/a&gt;. The only thing missing is &lt;code&gt;this.EXPORTED_SYMBOLS&lt;/code&gt; to define what names we're exporting. Luckily, we already know the name of the symbols being exported, and we know the filename that will be used for each entry point.&lt;/p&gt;
+&lt;p&gt;I used this info to write a small Webpack plugin that prepends an &lt;a href=&quot;http://eslint.org/&quot;&gt;eslint&lt;/a&gt;-ignore comment to the start of each generated file (since we don't want to lint bundled code) and &lt;code&gt;this.EXPORTED_SYMBOLS&lt;/code&gt; to the end of each generated file:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ExportedSymbols&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;emit&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;entrypoints&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;.js`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Matches output.filename&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ConcatSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;s2&quot;&gt;&amp;quot;/* eslint-disable */&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Disable linting&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;compilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assetName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+        &lt;span class=&quot;sb&quot;&gt;`this.EXPORTED_SYMBOLS = [&amp;quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;&amp;quot;];`&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Matches output.library&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Licenses&lt;/h2&gt;
+&lt;p&gt;During code review, &lt;a href=&quot;http://www.mythmon.com/&quot;&gt;mythmon&lt;/a&gt; brought up an excellent question; how do we retain licensing info for these files when we sync to mozilla-central? Turns out, there's a rather popular Webpack plugin called &lt;a href=&quot;https://www.npmjs.com/package/license-webpack-plugin&quot;&gt;license-webpack-plugin&lt;/a&gt; that collects license files found during a build and outputs them into a single file:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;LicenseWebpackPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^(MIT|ISC|MPL.*|Apache.*|BSD.*)$/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;filename&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;sb&quot;&gt;`LICENSE_THIRDPARTY`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;(Why MIT/ISC/MPL/etc.? I just used what I thought were common licenses for libraries we were likely to use.)&lt;/p&gt;
+&lt;h2&gt;Future Improvements&lt;/h2&gt;
+&lt;p&gt;This is already a useful improvement over our old method of pulling in dependencies, but there are some potential improvements I'd eventually like to get to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;The file size of third-party libraries is not insignificant, especially with their own dependencies. I'd like to consider minifying the bundles, potentially with source maps to aid debugging. I'm not even sure that's a thing for chrome code, though.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Some libraries may rely on browser globals, like &lt;code&gt;fetch&lt;/code&gt;. I'd like to figure out how to auto-prepend &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Language_Bindings/Components.utils.importGlobalProperties&quot;&gt;Components.utils.importGlobalProperties&lt;/a&gt; to library files that need certain globals that aren't normally available.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If several system add-ons use this pattern, we might end up with multiple copies of the same library in mozilla-central. Deduplicating this code where possible would be nice.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If there's enough interest in it, I'd be interested in pulling this pattern out into some sort of plugin/preset so that other system add-ons can also use npm libraries with ease.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;footnotes&quot;&gt;
+&lt;hr&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Did you know that Webpack will automatically use the main module defined in &lt;code&gt;package.json&lt;/code&gt; as the entry point if the path points to a directory with that file?&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://www.mkelly.me/blog/q-is-scary/">
     <title type="text">Q is Scary</title>
     <id>urn:uuid:5faa51c7-3174-3845-a87a-a96da8cc6b62</id>
