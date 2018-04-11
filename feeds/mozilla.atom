@@ -2,13 +2,105 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
   <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
-  <updated>2017-07-11T09:50:00-07:00</updated>
+  <updated>2018-04-11T10:02:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
   <author>
     <name></name>
   </author>
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
+  <entry xml:base="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/">
+    <title type="text">Data Collection at Mozilla: Browser Errors</title>
+    <id>urn:uuid:522c0c0f-07a9-35d2-8a77-b2ebe36c87d6</id>
+    <updated>2018-04-11T10:02:00-07:00</updated>
+    <link href="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/" />
+    <author>
+      <name></name>
+    </author>
+    <content type="html">&lt;p&gt;I’ve spent the past few months working on a project involving data collection from users of Nightly, the pre-release channel of Firefox that updates twice a day. I’d like to share the process from conception to prototype to illustrate&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;One of the many ways ideas become reality at Mozilla, and&lt;/li&gt;
+&lt;li&gt;How we care about and protect user privacy with regards to data collection.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Maybe JavaScript errors are a bad thing&lt;/h2&gt;
+&lt;p&gt;The user interface of Firefox is written in JavaScript (along with &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL&quot;&gt;XUL&lt;/a&gt;, HTML, and CSS). JavaScript powering the UI is “privileged” JavaScript, which is separate from JavaScript in a normal webpage, and can do things that normal webpages cannot do, such as read the filesystem.&lt;/p&gt;
+&lt;p&gt;When something goes wrong and an error occurs in this privileged JavaScript (let’s call them “browser errors”), it ends up logged to the &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Tools/Browser_Console&quot;&gt;Browser Console&lt;/a&gt;. Most users aren’t looking at the Browser Console, so these errors often go unnoticed.&lt;/p&gt;
+&lt;p&gt;While working on &lt;a href=&quot;https://wiki.mozilla.org/Firefox/Shield&quot;&gt;Shield&lt;/a&gt;, I found that our QA cycle&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the &lt;a href=&quot;https://www.mozilla.org/en-US/firefox/channel/desktop/&quot;&gt;Nightly channel&lt;/a&gt; before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot; rel=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;h2&gt;So let’s a great plan&lt;/h2&gt;
+&lt;p&gt;I told my boss a few times that browser error collection was a problem that I was interested in solving. I was pretty convinced that there was useful info to be gleaned from collecting these errors, but my beliefs aren’t really enough to justify building a production-quality error collection service. This was complicated by the fact that errors may contain info that can personally identify a user:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;There’s no limits or checks on what goes into an error message in Firefox, so we can’t guarantee that error messages don’t contain things like, say, an auth token for a URL that we couldn’t connect to.&lt;/li&gt;
+&lt;li&gt;Tracebacks for errors may signal that a user was using a specific feature in Firefox, like private browsing. It’s not clear whether “user was using private browsing” is private user data or not, but it’s gray enough to be concerning.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;On top of all that, we didn’t even know how often these errors were occurring in the wild. Was this a raging fire of constant errors we were just ignoring, or was I getting all worried about nothing?&lt;/p&gt;
+&lt;p&gt;In the end, I proposed a 3-step research project:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Run a study to measure the number of errors occurring in Nightly as well as the distribution of signatures.&lt;/li&gt;
+&lt;li&gt;Estimate potential load using the study data, and build a prototype service. Grant access to the data to a limited set of employees and discover whether the data helps us find and diagnose errors.&lt;/li&gt;
+&lt;li&gt;Shut down the prototype after 6 months or so and evaluate if we should build a production version of the system.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;I wrote up this plan as &lt;a href=&quot;https://docs.google.com/document/d/1FAoRLP19hvVFniQniOC9N5jxSUpITCrUs1SiXdhrOEM/edit?usp=sharing&quot;&gt;a document&lt;/a&gt; that could be shared among people asking why this was an important project to solve. Eventually, my boss threw the idea past Firefox leadership, who agreed that it was a problem worth pursuing.&lt;/p&gt;
+&lt;h2&gt;What even is happening out there&lt;/h2&gt;
+&lt;p&gt;The first step was to find out how many errors we’d be collecting. One tool at our disposal at Mozilla is Shield, which lets us run small studies at targeted subsets of users. In this case, I wanted to collect data on how many errors were being logged on the Nightly channel.&lt;/p&gt;
+&lt;p&gt;To run the study, I had to fill out a &lt;a href=&quot;https://docs.google.com/document/d/1iHRNYY9kB8R9ecT4YSMhcDRaJsDzLSKwrJnlsoi_WNA/edit?usp=sharing&quot;&gt;Product Hypothesis Document (PHD)&lt;/a&gt; describing my experiment. The PHD is approved by a group in Mozilla with data science and experiment design experience. It’s an important step that checks multiple things:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Do you know how to interpret the results of your experiment? Is success vs failure clear?&lt;/li&gt;
+&lt;li&gt;Have you enumerated the user data you’ll need to collect? Mozilla has a classification system for user data that needs to be applied to prevent collection of sensitive data.&lt;/li&gt;
+&lt;li&gt;Are you sending your experiment to the minimally-effective group? If we can make do with only collecting data from 3000 users rather than 30,000, we should avoid the over-collection of data.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Once the PHD was approved, I implemented the code for my study and created a &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1423784&quot;&gt;Bugzilla bug&lt;/a&gt; for final review. Mozilla has a group of “data stewards” who are responsible for reviewing data collection to ensure it complies with our policies. Studies are not allowed to go out until they’ve been reviewed, and the results of the review are, in most cases, public and available in Bugzilla.&lt;/p&gt;
+&lt;p&gt;In our case, we decided to compute hashes from the error stacktraces and submit those to Mozilla’s data analysis pipeline. That allowed us to count the number of errors and view the distribution of specific errors without accidentally collecting personal data that may be in file paths.&lt;/p&gt;
+&lt;h3&gt;I am perfect and infallible&lt;/h3&gt;
+&lt;p&gt;The last steps after passing review in the bug were to announce the study on a few mailing lists to both solicit feedback from Firefox developers, and to inform our release team that we intended to ship a new study to users. Once the release team approved our launch plan, we launched and started to collect data. Yay!&lt;/p&gt;
+&lt;p&gt;A few days after launching Ekr, who had noticed the study on the mailing lists, reached out and voiced some concerns with our study.&lt;/p&gt;
+&lt;p&gt;While we were hashing errors before sending them, an adversary could precompute the hashes by running Firefox, triggering bugs they were interested in, and generating their own hash using the same method we were using. This, paired with direct access to our telemetry data, would reveal that an individual user had run a specific piece of code.&lt;/p&gt;
+&lt;p&gt;It was unclear if knowing that a user had run a piece of code could be considered sensitive data. If, for example, the error came from code involved with private browsing mode, would that constitute knowing that the user had used private browsing mode for something? Was that sensitive enough for us to not want to collect?&lt;/p&gt;
+&lt;p&gt;We decided to turn the study off while we tried to address these concerns. By that point, we had collected 2-3 days-worth of data, and decided that the risk wasn’t large enough to justify dropping the data we already had. I was able to perform a limited analysis on that data and determine that we were seeing tens of millions of errors per day, which was enough of an estimate for building the prototype. With that question answered, we opted to keep the study disabled and consider it finished rather than re-tool it based on Ekr’s feedback.&lt;/p&gt;
+&lt;h2&gt;Can I collect the errors now&lt;/h2&gt;
+&lt;p&gt;Mozilla already runs our own instance of &lt;a href=&quot;https://sentry.io/welcome/&quot;&gt;Sentry&lt;/a&gt; for collecting and aggregating errors, and I have prior experience with it, so it seemed the obvious choice for the prototype.&lt;/p&gt;
+&lt;p&gt;With roughly 50 million errors per-day, I figured we could sample sending them to the collection service at a rate of 0.1%, or about 50,000 per-day. The operations team that ran our Sentry instance agreed that an extra 50,000 errors wasn’t an issue.&lt;/p&gt;
+&lt;p&gt;I spent a few weeks writing up a Firefox patch that collected the errors, mangled them into a Sentry-compatible format, and sent them off. Once the patch was ready, I had to get a technical review from a Firefox peer and a privacy review from a data steward. The patch and review process can be seen in &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1426482&quot;&gt;the Bugzilla bug&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The process, as outlined on the &lt;a href=&quot;https://wiki.mozilla.org/Firefox/Data_Collection&quot;&gt;Data Collection wiki page&lt;/a&gt;, involves three major steps:&lt;/p&gt;
+&lt;h3&gt;Requesting Review&lt;/h3&gt;
+&lt;p&gt;First, I had to fill out a &lt;a href=&quot;https://github.com/mozilla/data-review/blob/fde1f65be2cfe8be68a48d307e261d3bd53af09d/request.md&quot;&gt;form&lt;/a&gt; with several questions asking me to describe the data collection. I’m actually a huge fan of this form, because the questions force you to consider many aspects about data collection that are easy to ignore:&lt;/p&gt;
+&lt;dl&gt;
+    &lt;dt&gt;&lt;em&gt;“Why does Mozilla need to answer these questions? Are there benefits for users? Do we need this information to address product or business requirements?”&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;It’s really easy to let curiosity or mild suspicion drive big chunks of work. The point of this question is to force you to think of a reason for doing the collection. Collecting data just because it is mildly convenient or interesting isn’t a good enough reason; it needs a purpose.&lt;/dd&gt;
+
+    &lt;dt&gt;&lt;em&gt;“What alternative methods did you consider to answer these questions? Why were they not sufficient?”&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;Data collection can’t simply be the first tool you reach for to answer your questions. If we want to be respectful of user privacy, we need to consider other ways of answering questions that don’t involve collecting data.&lt;/dd&gt;
+
+    &lt;dt&gt;&lt;em&gt;“List all proposed measurements and indicate the category of data collection for each measurement, using the Firefox data collection categories on the Mozilla wiki.”&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;The &lt;a href=&quot;&quot;&gt;classification system we use for data&lt;/a&gt; makes it very clear how to apply our policies to the data you’re collecting. Browser errors, for example, are mostly category 2 data, but may potentially contain category 3 data and as such must be held to a higher standard.&lt;/dd&gt;
+
+    &lt;dt&gt;&lt;em&gt;“How long will this data be collected?”&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;If we can limit the time period in which we collect a piece of data, we can reduce the impact of data collection on users. I didn’t actually know time-limited collection was something to consider until I saw this question for the first time, but in fact several of our data collection systems enforce time limits by default.&lt;/dd&gt;
+&lt;/dl&gt;&lt;h3&gt;Reviewing Request&lt;/h3&gt;
+&lt;p&gt;Data stewards have their own form to fill out when reviewing a collection request. This form helps stewards be consistent in their judgement. Besides reviewing the answers to the review form from above, reviewers are asked to confirm a few other things:&lt;/p&gt;
+&lt;dl&gt;
+    &lt;dt&gt;&lt;em&gt;Is the data collection documented in a publicly accessible place?&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;Sufficiently technical users should be able to see the schema for data being collected without having to read through the Firefox source code. Failing to provide this documentation mandates a failing review.&lt;/dd&gt;
+
+    &lt;dt&gt;&lt;em&gt;Is there a way for users to disable the collection?&lt;/em&gt;&lt;/dt&gt;
+    &lt;dd&gt;There must be some way for users to disable the data collection. Missing this is also considered grounds for failure.
+    &lt;br&gt;&lt;br&gt;
+    It’s important to note that this mechanism doesn’t need to be, say, a checkbox in the preferences UI. Depending on the context of the data collection, an about:config preference or some other mechanism may be good enough.&lt;/dd&gt;
+&lt;/dl&gt;&lt;h3&gt;Rereing Viewquest?&lt;/h3&gt;
+&lt;p&gt;In certain cases, requests may be escalated to Mozilla’s legal team if they involve changes to our privacy policy or other special circumstances. In the case of browser error collection, we wanted a legal review to double-check whether a user having used private browsing mode was considered category 2 or 3 data, as well as to approve our proposal for collecting category 3 data in error messages and file paths.&lt;/p&gt;
+&lt;p&gt;Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-3&quot;&gt;&lt;a href=&quot;#fn-3&quot; rel=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;. Legal approved the plan, which we implemented using built-in Sentry access control.&lt;/p&gt;
+&lt;h2&gt;Welcome to errortown&lt;/h2&gt;
+&lt;p&gt;With code and privacy review finished, I landed the patch and waited patiently for Sentry to start receiving errors. And it did!&lt;/p&gt;
+&lt;p&gt;Since we started receiving the data, I’ve spent most of my time recruiting Firefox developers who want to search through the errors we’re collecting, and refining the data we’re collecting to make it more more useful to those developers. Of course, changes to the data collection require new privacy reviews, although the smaller the changes are, the easier it is to fill out and justify the data collection.&lt;/p&gt;
+&lt;p&gt;But from my standpoint as a Mozilla employee, these data reviews are the primary way I see Mozilla making good on its promise to respect user privacy and avoid needless data collection. A lot of thought has gone into this process, and I can personally attest to their effectiveness.&lt;/p&gt;
+&lt;div class=&quot;footnotes&quot;&gt;
+&lt;hr&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;Actually, we already do collect crashes as part of the &lt;a href=&quot;http://socorro.readthedocs.io/en/latest/&quot;&gt;Socorro&lt;/a&gt; project, which I currently work on. But Socorro does not collect any info about the browser errors in question.&lt;a href=&quot;#fnref-2&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-3&quot;&gt;&lt;p&gt;Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.&lt;a href=&quot;#fnref-3&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/">
     <title type="text">Using NPM Libraries in Firefox via Webpack</title>
     <id>urn:uuid:98dbb5f4-7b6c-3a25-843b-9e4149135e09</id>
