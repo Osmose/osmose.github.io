@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">mkelly.me</title>
-  <id>urn:uuid:ced6754a-e862-3bd0-9c26-f2a10afbbbe5</id>
+  <id>urn:uuid:754907e5-0874-3a99-b1c6-53498a42818c</id>
   <updated>2018-04-11T10:02:00-07:00</updated>
   <link href="http://www.mkelly.me/" />
   <link href="http://www.mkelly.me/feeds/mozilla.atom" rel="self" />
@@ -11,7 +11,7 @@
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
   <entry xml:base="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/">
     <title type="text">Data Collection at Mozilla: Browser Errors</title>
-    <id>urn:uuid:522c0c0f-07a9-35d2-8a77-b2ebe36c87d6</id>
+    <id>urn:uuid:6edb72ac-596e-3051-9a2c-b9ceec88cb40</id>
     <updated>2018-04-11T10:02:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/" />
     <author>
@@ -103,7 +103,7 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/">
     <title type="text">Using NPM Libraries in Firefox via Webpack</title>
-    <id>urn:uuid:98dbb5f4-7b6c-3a25-843b-9e4149135e09</id>
+    <id>urn:uuid:045b9ac2-709b-350f-a17e-21fb2792bc9a</id>
     <updated>2017-07-11T09:50:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/" />
     <author>
@@ -224,7 +224,7 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/q-is-scary/">
     <title type="text">Q is Scary</title>
-    <id>urn:uuid:5faa51c7-3174-3845-a87a-a96da8cc6b62</id>
+    <id>urn:uuid:b7d36eb2-5f3b-33aa-aac3-d705be77d875</id>
     <updated>2017-06-08T12:41:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/q-is-scary/" />
     <author>
@@ -330,7 +330,7 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/">
     <title type="text">Build and Sign WebExtensions with CircleCI</title>
-    <id>urn:uuid:e3a37e08-94ce-3fb9-9de8-e7eb9766e975</id>
+    <id>urn:uuid:30215235-cc4e-38dd-8575-0fa445c74e7d</id>
     <updated>2017-05-04T01:10:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/" />
     <author>
@@ -339,26 +339,26 @@
     <content type="html">&lt;p&gt;Once &lt;a href=&quot;https://planet.mozilla.org/&quot;&gt;Planet Mozilla&lt;/a&gt; updated with my &lt;a href=&quot;../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/&quot;&gt;last post&lt;/a&gt;, I got a few bug reports and feature requests for &lt;a href=&quot;https://github.com/Osmose/mailman-admin-helper&quot;&gt;mailman-admin-helper&lt;/a&gt;, along with a pull request (Thanks, &lt;a href=&quot;https://github.com/wagnerand&quot;&gt;TheOne&lt;/a&gt;!). Clearly I'm not the only person who isn't a fan of our mailing list admin.&lt;/p&gt;
 &lt;p&gt;Before landing anything, I decided to see if I could get automatic builds running so that I wouldn't have to pull a build pull requests myself when I want to test them. What I ended up with, however, does a bit more than that; it also runs lints, and even signs and uploads new releases when I push a new tag.&lt;/p&gt;
 &lt;p&gt;We use &lt;a href=&quot;https://github.com/mozilla/normandy&quot;&gt;CircleCI&lt;/a&gt; on &lt;a href=&quot;https://github.com/mozilla/normandy&quot;&gt;Normandy&lt;/a&gt;, so I defaulted to using them for this as well. I'll walk through the sections, but here's the entire &lt;code&gt;circle.yml&lt;/code&gt; file I ended up with:&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
-&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;sudo apt-get update; sudo apt-get install jq&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;go get -u github.com/tcnksm/ghr&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;npm install -g web-ext&lt;/span&gt;
-&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext build&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;mv web-ext-artifacts $CIRCLE_ARTIFACTS&lt;/span&gt;
-&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext lint --self-hosted&lt;/span&gt;
-&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;jq --arg tag &amp;quot;${CIRCLE_TAG:1}&amp;quot; &amp;#39;.version = $tag&amp;#39; manifest.json &amp;gt; tmp.json &amp;amp;&amp;amp; mv tmp.json manifest.json&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;ghr -u Osmose $CIRCLE_TAG web-ext-artifacts&lt;/span&gt;
@@ -374,13 +374,13 @@
 &lt;/ul&gt;
 &lt;h3&gt;How does it work?&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&quot;https://circleci.com/docs/1.0/configuration/&quot;&gt;circle.yml&lt;/a&gt; files are split into phases. Each phase has a default action that is overridden with the &lt;code&gt;override&lt;/code&gt; key.&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;7.10.0&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The &lt;code&gt;machine&lt;/code&gt; phase defines the machine used to run your build. Here we're just making sure that we have a recent version of Node.&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;sudo apt-get update; sudo apt-get install jq&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;go get -u github.com/tcnksm/ghr&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;npm install -g web-ext&lt;/span&gt;
@@ -394,23 +394,23 @@
 &lt;li&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mozilla/web-ext&quot;&gt;web-ext&lt;/a&gt;: Mozilla's command-line tool for building and testing WebExtensions.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext build&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;mv web-ext-artifacts $CIRCLE_ARTIFACTS&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The &lt;code&gt;compile&lt;/code&gt; step is used to build your project before testing. While we aren't running any tests that need a built add-on, this is a good time to build the add-on and upload it to the &lt;code&gt;$CIRCLE_ARTIFACTS&lt;/code&gt; directory, which is saved and made available for download once the build is complete. This makes it easy to pull a ready-to-test build of the add-on from open pull requests.&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;override&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext lint --self-hosted&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The &lt;code&gt;test&lt;/code&gt; step is for actually running your tests. We don't have automated tests for mailman-admin-helper, but web-ext comes with a handy lint command to help catch common errors.&lt;/p&gt;
 &lt;p&gt;One thing to note about CircleCI is that any commands that return non-zero return codes will stop the build immediately and mark it as failed, &lt;em&gt;except&lt;/em&gt; for commands in the &lt;code&gt;test&lt;/code&gt; step. &lt;code&gt;test&lt;/code&gt; step commands will mark a build as failed, but will not stop other commands in the &lt;code&gt;test&lt;/code&gt; step from running. This is useful for running multiple types of tests or lints because it allows you to see all of your failures instead of exiting early before running all of your tests.&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
-    &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p p-Indicator&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;deployment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;/v[0-9]+(\.[0-9]+)*/&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;owner&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;Osmose&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;jq --arg tag &amp;quot;${CIRCLE_TAG:1}&amp;quot; &amp;#39;.version = $tag&amp;#39; manifest.json &amp;gt; tmp.json &amp;amp;&amp;amp; mv tmp.json manifest.json&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;web-ext sign --api-key $AMO_API_KEY --api-secret $AMO_API_SECRET&lt;/span&gt;
       &lt;span class=&quot;p p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l l-Scalar l-Scalar-Plain&quot;&gt;ghr -u Osmose $CIRCLE_TAG web-ext-artifacts&lt;/span&gt;
@@ -433,7 +433,7 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">
     <title type="text">mailman-admin-helper: Mildly Easier Mailman Spam Management</title>
-    <id>urn:uuid:73c395e9-767c-35c9-99dc-845902f4155a</id>
+    <id>urn:uuid:5903dbfa-5f0a-3805-aeff-59d5b115c14f</id>
     <updated>2017-04-30T06:34:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/" />
     <author>
@@ -485,7 +485,7 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/content-uitourjs/">
     <title type="text">content-UITour.js</title>
-    <id>urn:uuid:c7e1ed6c-bce2-3886-bf81-7d202883f4c6</id>
+    <id>urn:uuid:8688ccde-00c7-3ea0-8160-436f3cccde3b</id>
     <updated>2017-04-25T08:57:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/content-uitourjs/" />
     <author>
@@ -701,7 +701,7 @@ origin    uitour    1    about:home
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/caching-async-operations-via-promises/">
     <title type="text">Caching Async Operations via Promises</title>
-    <id>urn:uuid:0d1cd96d-5a86-36df-8588-ff6f62c35274</id>
+    <id>urn:uuid:17d7793a-c531-332f-80ed-ed8f729b1b38</id>
     <updated>2016-08-22T09:00:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/caching-async-operations-via-promises/" />
     <author>
