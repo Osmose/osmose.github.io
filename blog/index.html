@@ -39,6 +39,634 @@
     
   <div class="blog-post">
   
+    <h2 class="blog-title"><a href="../blog/phaser-finite-state-machine/">Phaser Tutorial Series: Finite State Machine</a></h2>
+  
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      February 23, 2019
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      mozilla phaser gamedev
+    </span>
+  </div>
+  <p>I've been working on a game using <a href="https://phaser.io/">Phaser</a> in my spare time:</p>
+<div style="position:relative; padding-bottom:calc(84.58% + 44px)"><iframe src="https://gfycat.com/ifr/DentalMasculineFirebelliedtoad" frameborder="0" scrolling="no" width="100%" height="100%" style="position:absolute;top:0;left:0;" allowfullscreen></iframe></div><p>One thing that's made adding new features really easy is using finite-state machines to model behavior. Almost everything in the animation above is backed by a state machine: the player, the platform, the grappling hook, the statue, and the fireballs.</p>
+<p>This post is going to assume some familiarity with the basics of Phaser, such as the <code>preload</code>/<code>create</code>/<code>update</code> steps, Arcade physics, and keyboard input. You may also be able to follow along if you're not familiar with Phaser, but it's okay if not! This use of state machines isn't specific to Phaser.</p>
+<h3><strike>What is a finite-state machine?</strike> Fuck that let's make games</h3>
+<p>Let's start with a fairly empty example project. Here it is on <a href="https://glitch.com/">Glitch</a>. You can use the remix button to create your own copy and follow along the tutorial as we go:</p>
+<div class="glitch-embed-wrap">
+  <iframe
+    allow="geolocation; microphone; camera; midi; encrypted-media"
+    src="https://glitch.com/embed/#!/embed/phaser-fsm-example-starter?path=public/client.js&previewSize=40"
+    alt="phaser-fsm-example-starter on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div><p>Pretty much all of our work is happening in <code>client.js</code>. It starts out looking something like this:</p>
+<div class="highlight"><pre><span></span><span class="cm">/* global Phaser */</span>
+
+<span class="kr">const</span> <span class="nx">config</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">type</span><span class="o">:</span> <span class="nx">Phaser</span><span class="p">.</span><span class="nx">AUTO</span><span class="p">,</span>
+  <span class="nx">width</span><span class="o">:</span> <span class="mi">400</span><span class="p">,</span>
+  <span class="nx">height</span><span class="o">:</span> <span class="mi">300</span><span class="p">,</span>
+  <span class="nx">pixelArt</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="nx">zoom</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="nx">physics</span><span class="o">:</span> <span class="p">{</span>
+    <span class="k">default</span><span class="o">:</span> <span class="s1">&#39;arcade&#39;</span>
+  <span class="p">},</span>
+  <span class="nx">scene</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">preload</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">load</span><span class="p">.</span><span class="nx">spritesheet</span><span class="p">(</span><span class="s1">&#39;hero&#39;</span><span class="p">,</span> <span class="s1">&#39;https://cdn.glitch.com/59aa1c5f-c16d-41a1-bfd2-09072e84a538%2Fhero.png?1551136698770&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">frameWidth</span><span class="o">:</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="nx">frameHeight</span><span class="o">:</span> <span class="mi">32</span><span class="p">,</span>
+      <span class="p">});</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">load</span><span class="p">.</span><span class="nx">image</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">,</span> <span class="s1">&#39;https://cdn.glitch.com/59aa1c5f-c16d-41a1-bfd2-09072e84a538%2Fbg.png?1551136995353&#39;</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">create</span><span class="p">()</span> <span class="p">{</span>
+      <span class="c1">// Static background</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">add</span><span class="p">.</span><span class="nx">image</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s1">&#39;bg&#39;</span><span class="p">);</span>
+
+      <span class="c1">// The movable character</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">hero</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">physics</span><span class="p">.</span><span class="nx">add</span><span class="p">.</span><span class="nx">sprite</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="s1">&#39;hero&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">update</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="p">},</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="nb">window</span><span class="p">.</span><span class="nx">game</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Phaser</span><span class="p">.</span><span class="nx">Game</span><span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+</pre></div>
+<p>We're loading some images in the <code>preload</code> step, and adding the background and hero sprite in the <code>create</code> step. The hero is drawn on the background, but nothing else happens.</p>
+<h3>MAKE IT WALK</h3>
+<p>Let's add a <code>this.keys</code> variable for reading input from the keyboard. We can use that in the <code>update</code> method to check which keys are being pressed and set the hero's velocity appropriately:</p>
+<div class="highlight"><pre><span></span><span class="gu">@@ -19,6 +19,8 @@</span>
+     },
+
+     create() {
+<span class="gi">+      this.keys = this.input.keyboard.createCursorKeys();</span>
+<span class="gi">+</span>
+       // Static background
+       this.add.image(200, 200, &#39;bg&#39;);
+
+<span class="gu">@@ -27,7 +29,20 @@</span>
+     },
+
+     update() {
+<span class="gd">-</span>
+<span class="gi">+      // Stop movement from last update</span>
+<span class="gi">+      this.hero.setVelocity(0);</span>
+<span class="gi">+</span>
+<span class="gi">+      // Set new velocity based on input</span>
+<span class="gi">+      if (this.keys.up.isDown) {</span>
+<span class="gi">+        this.hero.setVelocityY(-100);</span>
+<span class="gi">+      } else if (this.keys.down.isDown) {</span>
+<span class="gi">+        this.hero.setVelocityY(100);</span>
+<span class="gi">+      }</span>
+<span class="gi">+      if (this.keys.left.isDown) {</span>
+<span class="gi">+        this.hero.setVelocityX(-100);</span>
+<span class="gi">+      } else if (this.keys.right.isDown) {</span>
+<span class="gi">+        this.hero.setVelocityX(100);</span>
+<span class="gi">+      }</span>
+     },
+   }
+ };
+</pre></div>
+<h3>MAKE IT LOOK LIKE IT'S WALKING</h3>
+<p>Now the hero is moving about the map, but it doesn't look like he's walking. To do that, we'll need to do two things:</p>
+<ol>
+<li>Define some animations from our sprite sheet in the <code>create</code> function. Our sheet is split into 32x32 pixel squares, so we can use <code>generateFrameNumbers</code> to generate animation data by giving it start and end indexes for the animation frames. These are numbered from top left to bottom right.</li>
+<li>Trigger the proper animations in the <code>update</code> function. We also track whether the player is moving or not, and if they aren't, we stop the current animation to stop the player from walking. Note the <code>true</code> passed to the <code>play</code> function: this tells Phaser to not restart the animation if it's already playing.</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="gu">@@ -26,22 +26,61 @@</span>
+
+       // The movable character
+       this.hero = this.physics.add.sprite(200, 150, &#39;hero&#39;, 0);
+<span class="gi">+</span>
+<span class="gi">+      // Animation definitions</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;walk-down&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: -1,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 0, end: 3}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;walk-right&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: -1,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 4, end: 7}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;walk-up&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: -1,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 8, end: 11}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;walk-left&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: -1,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 12, end: 15}),</span>
+<span class="gi">+      });</span>
+     },
+
+     update() {
+       // Stop movement from last update
+<span class="gi">+      let moving = false;</span>
+       this.hero.setVelocity(0);
+
+       // Set new velocity based on input
+       if (this.keys.up.isDown) {
+         this.hero.setVelocityY(-100);
+<span class="gi">+        this.hero.anims.play(&#39;walk-up&#39;, true);</span>
+<span class="gi">+        moving = true;</span>
+       } else if (this.keys.down.isDown) {
+         this.hero.setVelocityY(100);
+<span class="gi">+        this.hero.anims.play(&#39;walk-down&#39;, true);</span>
+<span class="gi">+        moving = true;</span>
+       }
+       if (this.keys.left.isDown) {
+         this.hero.setVelocityX(-100);
+<span class="gi">+        this.hero.anims.play(&#39;walk-left&#39;, true);</span>
+<span class="gi">+        moving = true;</span>
+       } else if (this.keys.right.isDown) {
+         this.hero.setVelocityX(100);
+<span class="gi">+        this.hero.anims.play(&#39;walk-right&#39;, true);</span>
+<span class="gi">+        moving = true;</span>
+<span class="gi">+      }</span>
+<span class="gi">+</span>
+<span class="gi">+      if (!moving) {</span>
+<span class="gi">+        this.hero.anims.stop();</span>
+       }
+     },
+   }
+</pre></div>
+<h3>MAKE IT UNNECESSARILY VIOLENT</h3>
+<p>Next, let's make the player swing their sword when we press the space key. This actually involves a few steps:</p>
+<ol>
+<li>Check if the space key is pressed.</li>
+<li><p>Stop player movement while the sword is being swung.</p>
+<p>We'll need to know if the hero is currently swinging their sword, so we'll add a <code>swinging</code> variable on <code>this.hero</code> that determines if the swinging animation is still playing.</p>
+</li>
+<li><p>Determine which direction the player is facing.</p>
+<p>Figuring out the direction requires that we add a new variable called <code>direction</code> to keep track between walking and swinging. Storing this on the <code>this.hero</code> object makes it clear that the direction isn't for, say, an enemy we may add later.</p>
+</li>
+<li>Play the sword-swinging animation for the appropriate direction.</li>
+<li>Once the animation is done playing, switch back to the non-sword-swinging sprites and allow movement again.</li>
+</ol>
+<p>Doing all of this with the movement code is tricky, and difficult to split into single code changes. You may want to take a bit to look over the diff to understand the changes:</p>
+<div class="highlight"><pre><span></span><span class="gu">@@ -26,6 +26,8 @@</span>
+
+       // The movable character
+       this.hero = this.physics.add.sprite(200, 150, &#39;hero&#39;, 0);
+<span class="gi">+      this.hero.direction = &#39;down&#39;;</span>
+<span class="gi">+      this.hero.swinging = false;</span>
+
+       // Animation definitions
+       this.anims.create({
+<span class="gu">@@ -52,6 +54,32 @@</span>
+         repeat: -1,
+         frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 12, end: 15}),
+       });
+<span class="gi">+</span>
+<span class="gi">+      // NOTE: Sword animations do not repeat</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;swing-down&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: 0,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 16, end: 19}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;swing-up&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: 0,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 20, end: 23}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;swing-right&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: 0,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 24, end: 27}),</span>
+<span class="gi">+      });</span>
+<span class="gi">+      this.anims.create({</span>
+<span class="gi">+        key: &#39;swing-left&#39;,</span>
+<span class="gi">+        frameRate: 8,</span>
+<span class="gi">+        repeat: 0,</span>
+<span class="gi">+        frames: this.anims.generateFrameNumbers(&#39;hero&#39;, {start: 28, end: 31}),</span>
+<span class="gi">+      });</span>
+     },
+
+     update() {
+<span class="gu">@@ -59,28 +87,43 @@</span>
+       let moving = false;
+       this.hero.setVelocity(0);
+
+<span class="gd">-      // Set new velocity based on input</span>
+<span class="gd">-      if (this.keys.up.isDown) {</span>
+<span class="gd">-        this.hero.setVelocityY(-100);</span>
+<span class="gd">-        this.hero.anims.play(&#39;walk-up&#39;, true);</span>
+<span class="gd">-        moving = true;</span>
+<span class="gd">-      } else if (this.keys.down.isDown) {</span>
+<span class="gd">-        this.hero.setVelocityY(100);</span>
+<span class="gd">-        this.hero.anims.play(&#39;walk-down&#39;, true);</span>
+<span class="gd">-        moving = true;</span>
+<span class="gd">-      }</span>
+<span class="gd">-      if (this.keys.left.isDown) {</span>
+<span class="gd">-        this.hero.setVelocityX(-100);</span>
+<span class="gd">-        this.hero.anims.play(&#39;walk-left&#39;, true);</span>
+<span class="gd">-        moving = true;</span>
+<span class="gd">-      } else if (this.keys.right.isDown) {</span>
+<span class="gd">-        this.hero.setVelocityX(100);</span>
+<span class="gd">-        this.hero.anims.play(&#39;walk-right&#39;, true);</span>
+<span class="gd">-        moving = true;</span>
+<span class="gd">-      }</span>
+<span class="gd">-</span>
+<span class="gd">-      if (!moving) {</span>
+<span class="gd">-        this.hero.anims.stop();</span>
+<span class="gi">+      // If we&#39;re swinging a sword, wait for the animation to finish</span>
+<span class="gi">+      if (!this.hero.swinging) {</span>
+<span class="gi">+        // Swinging a sword overrides movement</span>
+<span class="gi">+        if (this.keys.space.isDown) {</span>
+<span class="gi">+          this.hero.swinging = true;</span>
+<span class="gi">+          this.hero.anims.play(`swing-${this.hero.direction}`, true);</span>
+<span class="gi">+          this.hero.once(&#39;animationcomplete&#39;, () =&gt; {</span>
+<span class="gi">+            this.hero.anims.play(`walk-${this.hero.direction}`, true);</span>
+<span class="gi">+            this.hero.swinging = false;</span>
+<span class="gi">+          });</span>
+<span class="gi">+        } else {</span>
+<span class="gi">+          // Set new velocity based on input</span>
+<span class="gi">+          if (this.keys.up.isDown) {</span>
+<span class="gi">+            this.hero.setVelocityY(-100);</span>
+<span class="gi">+            this.hero.direction = &#39;up&#39;;</span>
+<span class="gi">+            moving = true;</span>
+<span class="gi">+          } else if (this.keys.down.isDown) {</span>
+<span class="gi">+            this.hero.setVelocityY(100);</span>
+<span class="gi">+            this.hero.direction = &#39;down&#39;;</span>
+<span class="gi">+            moving = true;</span>
+<span class="gi">+          }</span>
+<span class="gi">+          if (this.keys.left.isDown) {</span>
+<span class="gi">+            this.hero.setVelocityX(-100);</span>
+<span class="gi">+            this.hero.direction = &#39;left&#39;;</span>
+<span class="gi">+            moving = true;</span>
+<span class="gi">+          } else if (this.keys.right.isDown) {</span>
+<span class="gi">+            this.hero.setVelocityX(100);</span>
+<span class="gi">+            this.hero.direction = &#39;right&#39;;</span>
+<span class="gi">+            moving = true;</span>
+<span class="gi">+          }</span>
+<span class="gi">+</span>
+<span class="gi">+          if (!moving) {</span>
+<span class="gi">+            this.hero.anims.stop();</span>
+<span class="gi">+          } else {</span>
+<span class="gi">+            this.hero.anims.play(`walk-${this.hero.direction}`, true);</span>
+<span class="gi">+          }</span>
+<span class="gi">+        }</span>
+       }
+     },
+   }
+</pre></div>
+<h3>MAKE IT DO MORE?</h3>
+<p>Okay so the hero is now swinging their sword, next we want to add the ability for them to jump, or maybe we want to handle collision detection, or maybe add some enemy logic to the update loop, or... well, you get the idea. We've barely added some basic functionality to the game and already the update loop is getting difficult to manage.</p>
+<p>The core problem here is that, to add some new feature to the player, like a new weapon or ability, we need to think about <em>every other thing the player can do</em>. What happens if the player uses a hookshot while moving? What if they use a jump power while moving? One may freeze the player in place while the other retains their momentum. There's too much state to keep in our heads.</p>
+<p>Enter state machines. The idea is to model the player's behavior by assigning them a single "state" to be in. When a player is in a "state", they can "transition" to another state if a condition is met, which replaces the current state with a new one. If we design our states and transitions correctly, we can control the amount of info we need to keep in our head when writing new features.</p>
+<p>I find the state machine from the <a href="https://en.wikipedia.org/wiki/Finite-state_machine">Wikipedia article on state machines</a> to be a great example:</p>
+<figure>
+    <img alt="A state machine modelling a turnstile" src="/blog/phaser-finite-state-machine/example-state-machine.svg">
+    <figcaption>A state machine diagram for a subway turnstile. The "Locked" state is the initial state.</figcaption>
+</figure><p>The diagram above illustrates a subway turnstile that is locked until you drop a coin into it, which unlocks it and allows one person to walk through before becoming locked again. The state machine has two states:</p>
+<ul>
+<li><strong>Locked</strong>: The turnstile is locked. Pushing it will not let you through and remain in the "Locked" state, but inserting a coin will transition to the "Open" state.</li>
+<li><strong>Unlocked</strong>: The turnstile is unlocked. Inserting another coin will keep the turnstile "Unlocked", but pushing it will allow you through and transition back to the "Locked" state.</li>
+</ul>
+<p>In the same way that this diagram models the behavior of the real turnstile, we can create a similar diagram that models how we want our player to behave:</p>
+<figure>
+    <img alt="A state machine modelling the hero" src="/blog/phaser-finite-state-machine/hero-state-machine.svg">
+    <figcaption>I am not the best diagram-maker.</figcaption>
+</figure><p>The entire diagram itself is a little messy, but the point is that this model allows us to implement each state in isolation, resulting in cleaner, easier-to-maintain code.</p>
+<h3>Coding a State Machine</h3>
+<p>We're going to create a <code>StateMachine</code> class that handles storing the current active state, storing a list of all possible states, and transitioning from the current state to a new state. But transitioning alone doesn't really <em>do</em> anything.</p>
+<p>Besides transitioning, we also want to:</p>
+<ul>
+<li>Run a function when we first transition to a new state. This lets us modify the hero when we transition between states, like starting the attack animation when we enter the <code>swing</code> state. We'll call this the <code>enter</code> function.</li>
+<li>Run a function during each <code>update</code> call depending on the current state. We'll call this the <code>execute</code> function.</li>
+</ul>
+<p>There are several options for how to represent a state in our code. One is to use classes, which allows us to inherit from a base <code>State</code> class to get default <code>enter</code> and <code>execute</code> functions.</p>
+<div class="highlight"><pre><span></span><span class="gu">@@ -1,5 +1,46 @@</span>
+ /* global Phaser */
+
+<span class="gi">+class StateMachine {</span>
+<span class="gi">+  constructor(initialState, possibleStates, stateArgs=[]) {</span>
+<span class="gi">+    this.initialState = initialState;</span>
+<span class="gi">+    this.possibleStates = possibleStates;</span>
+<span class="gi">+    this.stateArgs = stateArgs;</span>
+<span class="gi">+    this.state = null;</span>
+<span class="gi">+</span>
+<span class="gi">+    // State instances get access to the state machine via this.stateMachine.</span>
+<span class="gi">+    for (const state of Object.values(this.possibleStates)) {</span>
+<span class="gi">+      state.stateMachine = this;</span>
+<span class="gi">+    }</span>
+<span class="gi">+  }</span>
+<span class="gi">+</span>
+<span class="gi">+  step() {</span>
+<span class="gi">+    // On the first step, the state is null and we need to initialize the first state.</span>
+<span class="gi">+    if (this.state === null) {</span>
+<span class="gi">+      this.state = this.initialState;</span>
+<span class="gi">+      this.possibleStates[this.state].enter(...this.stateArgs);</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    // Run the current state&#39;s execute</span>
+<span class="gi">+    this.possibleStates[this.state].execute(...this.stateArgs);</span>
+<span class="gi">+  }</span>
+<span class="gi">+</span>
+<span class="gi">+  transition(newState, ...enterArgs) {</span>
+<span class="gi">+    this.state = newState;</span>
+<span class="gi">+    this.possibleStates[this.state].enter(...this.stateArgs, ...enterArgs);</span>
+<span class="gi">+  }</span>
+<span class="gi">+}</span>
+<span class="gi">+</span>
+<span class="gi">+class State {</span>
+<span class="gi">+  enter() {</span>
+<span class="gi">+</span>
+<span class="gi">+  }</span>
+<span class="gi">+</span>
+<span class="gi">+  execute() {</span>
+<span class="gi">+</span>
+<span class="gi">+  }</span>
+<span class="gi">+}</span>
+<span class="gi">+</span>
+<span class="gi">+</span>
+ const config = {
+   type: Phaser.AUTO,
+   width: 400,
+</pre></div>
+<p>There are two things to note in the code above:</p>
+<ul>
+<li><code>possibleStates</code> is an object whose keys refer to the state name, and whose values are instances of the <code>State</code> class (or subclasses). We assign the <code>stateMachine</code> property on each instance so that they can call <code>this.stateMachine.transition</code> whenever they want to trigger a transition.</li>
+<li><code>stateArgs</code> is a list of arguments passed to the <code>enter</code> and <code>execute</code> functions. This lets us pass commonly-used values (such as the hero or the current Phaser scene) to the state methods.</li>
+</ul>
+<p>With this state machine implementation, we can replace our nest of <code>if</code> statements with classes for each state we modeled on our diagram:</p>
+<div class="highlight"><pre><span></span><span class="gu">@@ -27,7 +68,14 @@</span>
+       // The movable character
+       this.hero = this.physics.add.sprite(200, 150, &#39;hero&#39;, 0);
+       this.hero.direction = &#39;down&#39;;
+<span class="gd">-      this.hero.swinging = false;</span>
+<span class="gi">+</span>
+<span class="gi">+      // The state machine managing the hero</span>
+<span class="gi">+      this.stateMachine = new StateMachine(&#39;idle&#39;, {</span>
+<span class="gi">+        idle: new IdleState(),</span>
+<span class="gi">+        move: new MoveState(),</span>
+<span class="gi">+        swing: new SwingState(),</span>
+<span class="gi">+      }, [this, this.hero]);</span>
+<span class="gi">+</span>
+
+       // Animation definitions
+       this.anims.create({
+<span class="gu">@@ -83,50 +131,79 @@</span>
+     },
+
+     update() {
+<span class="gd">-      // Stop movement from last update</span>
+<span class="gd">-      let moving = false;</span>
+<span class="gd">-      this.hero.setVelocity(0);</span>
+<span class="gd">-</span>
+<span class="gd">-      // If we&#39;re swinging a sword, wait for the animation to finish</span>
+<span class="gd">-      if (!this.hero.swinging) {</span>
+<span class="gd">-        // Swinging a sword overrides movement</span>
+<span class="gd">-        if (this.keys.space.isDown) {</span>
+<span class="gd">-          this.hero.swinging = true;</span>
+<span class="gd">-          this.hero.anims.play(`swing-${this.hero.direction}`, true);</span>
+<span class="gd">-          this.hero.once(&#39;animationcomplete&#39;, () =&gt; {</span>
+<span class="gd">-            this.hero.anims.play(`walk-${this.hero.direction}`, true);</span>
+<span class="gd">-            this.hero.swinging = false;</span>
+<span class="gd">-          });</span>
+<span class="gd">-        } else {</span>
+<span class="gd">-          // Set new velocity based on input</span>
+<span class="gd">-          if (this.keys.up.isDown) {</span>
+<span class="gd">-            this.hero.setVelocityY(-100);</span>
+<span class="gd">-            this.hero.direction = &#39;up&#39;;</span>
+<span class="gd">-            moving = true;</span>
+<span class="gd">-          } else if (this.keys.down.isDown) {</span>
+<span class="gd">-            this.hero.setVelocityY(100);</span>
+<span class="gd">-            this.hero.direction = &#39;down&#39;;</span>
+<span class="gd">-            moving = true;</span>
+<span class="gd">-          }</span>
+<span class="gd">-          if (this.keys.left.isDown) {</span>
+<span class="gd">-            this.hero.setVelocityX(-100);</span>
+<span class="gd">-            this.hero.direction = &#39;left&#39;;</span>
+<span class="gd">-            moving = true;</span>
+<span class="gd">-          } else if (this.keys.right.isDown) {</span>
+<span class="gd">-            this.hero.setVelocityX(100);</span>
+<span class="gd">-            this.hero.direction = &#39;right&#39;;</span>
+<span class="gd">-            moving = true;</span>
+<span class="gd">-          }</span>
+<span class="gd">-</span>
+<span class="gd">-          if (!moving) {</span>
+<span class="gd">-            this.hero.anims.stop();</span>
+<span class="gd">-          } else {</span>
+<span class="gd">-            this.hero.anims.play(`walk-${this.hero.direction}`, true);</span>
+<span class="gd">-          }</span>
+<span class="gd">-        }</span>
+<span class="gd">-      }</span>
+<span class="gi">+      this.stateMachine.step();</span>
+     },
+   }
+ };
+
+<span class="gi">+class IdleState extends State {</span>
+<span class="gi">+  enter(scene, hero) {</span>
+<span class="gi">+    hero.setVelocity(0);</span>
+<span class="gi">+    hero.anims.play(`walk-${hero.direction}`);</span>
+<span class="gi">+    hero.anims.stop();</span>
+<span class="gi">+  }</span>
+<span class="gi">+</span>
+<span class="gi">+  execute(scene, hero) {</span>
+<span class="gi">+    const {left, right, up, down, space} = scene.keys;</span>
+<span class="gi">+</span>
+<span class="gi">+    // Transition to swing if pressing space</span>
+<span class="gi">+    if (space.isDown) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;swing&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    // Transition to move if pressing a movement key</span>
+<span class="gi">+    if (left.isDown || right.isDown || up.isDown || down.isDown) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;move&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+  }</span>
+<span class="gi">+}</span>
+<span class="gi">+</span>
+<span class="gi">+class MoveState extends State {</span>
+<span class="gi">+  execute(scene, hero) {</span>
+<span class="gi">+    const {left, right, up, down, space} = scene.keys;</span>
+<span class="gi">+</span>
+<span class="gi">+    // Transition to swing if pressing space</span>
+<span class="gi">+    if (space.isDown) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;swing&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    // Transition to idle if not pressing movement keys</span>
+<span class="gi">+    if (!(left.isDown || right.isDown || up.isDown || down.isDown)) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;idle&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    hero.setVelocity(0);</span>
+<span class="gi">+    if (up.isDown) {</span>
+<span class="gi">+      hero.setVelocityY(-100);</span>
+<span class="gi">+      hero.direction = &#39;up&#39;;</span>
+<span class="gi">+    } else if (down.isDown) {</span>
+<span class="gi">+      hero.setVelocityY(100);</span>
+<span class="gi">+      hero.direction = &#39;down&#39;;</span>
+<span class="gi">+    }</span>
+<span class="gi">+    if (left.isDown) {</span>
+<span class="gi">+      hero.setVelocityX(-100);</span>
+<span class="gi">+      hero.direction = &#39;left&#39;;</span>
+<span class="gi">+    } else if (right.isDown) {</span>
+<span class="gi">+      hero.setVelocityX(100);</span>
+<span class="gi">+      hero.direction = &#39;right&#39;;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    hero.anims.play(`walk-${hero.direction}`, true);</span>
+<span class="gi">+  }</span>
+<span class="gi">+}</span>
+<span class="gi">+</span>
+<span class="gi">+class SwingState extends State {</span>
+<span class="gi">+  enter(scene, hero) {</span>
+<span class="gi">+    hero.setVelocity(0);</span>
+<span class="gi">+    hero.anims.play(`swing-${hero.direction}`);</span>
+<span class="gi">+    hero.once(&#39;animationcomplete&#39;, () =&gt; {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;idle&#39;);</span>
+<span class="gi">+    });</span>
+<span class="gi">+  }</span>
+<span class="gi">+}</span>
+<span class="gi">+</span>
+ window.game = new Phaser.Game(config);
+</pre></div>
+<p>This is a lot to unpack. Some highlights of the changes:</p>
+<ul>
+<li>We can remove the <code>swinging</code> variable now, as it's been effectively replaced by <code>swing</code> being the current state. Since <code>SwingState</code> doesn't do anything in it's <code>execute</code> function, there's no fear of accidentally moving during the swing.</li>
+<li>Note how the transitions from the state machine we modeled above typically appear as early <code>if</code> statements that transition and return if their condition passes.</li>
+<li>Some code is repeated, such as checking if the spacebar is being pressed and transitioning to the <code>swing</code> state. You could factor these out to avoid repeated code, but I find that ends up coupling code in a way that is harder to maintain vs keeping them separate.</li>
+</ul>
+<h3>Okay but why?</h3>
+<p>At first glance it may seem that the state machine code is longer than the old <code>update</code> method and more complex, and to some degree this is true. The reduction in complexity is not due to less code, but is instead due to less cognitive load. When we're working on the move state, we don't have to think about interfering with the idle and swing state logic as much as we previously did.</p>
+<p>Let's say we want to add a dash in the current direction when the Shift key is pressed. Under the old code, we'd have to figure out where in the nest of <code>if</code> statements to check the shift key, and then probably add another level of conditions to avoid moving or attacking during a dash. With a state machine, we can add a new <code>dash</code> state and modify the existing states that can validly transition to a dash:</p>
+<div class="highlight"><pre><span></span><span class="gu">@@ -74,6 +74,7 @@</span>
+         idle: new IdleState(),
+         move: new MoveState(),
+         swing: new SwingState(),
+<span class="gi">+        dash: new DashState(),</span>
+       }, [this, this.hero]);
+
+
+<span class="gu">@@ -144,7 +145,7 @@</span>
+   }
+
+   execute(scene, hero) {
+<span class="gd">-    const {left, right, up, down, space} = scene.keys;</span>
+<span class="gi">+    const {left, right, up, down, space, shift} = scene.keys;</span>
+
+     // Transition to swing if pressing space
+     if (space.isDown) {
+<span class="gu">@@ -152,6 +153,12 @@</span>
+       return;
+     }
+
+<span class="gi">+    // Transition to dash if pressing shift</span>
+<span class="gi">+    if (shift.isDown) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;dash&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+     // Transition to move if pressing a movement key
+     if (left.isDown || right.isDown || up.isDown || down.isDown) {
+       this.stateMachine.transition(&#39;move&#39;);
+<span class="gu">@@ -162,7 +169,7 @@</span>
+
+ class MoveState extends State {
+   execute(scene, hero) {
+<span class="gd">-    const {left, right, up, down, space} = scene.keys;</span>
+<span class="gi">+    const {left, right, up, down, space, shift} = scene.keys;</span>
+
+     // Transition to swing if pressing space
+     if (space.isDown) {
+<span class="gu">@@ -170,6 +177,12 @@</span>
+       return;
+     }
+
+<span class="gi">+    // Transition to dash if pressing shift</span>
+<span class="gi">+    if (shift.isDown) {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;dash&#39;);</span>
+<span class="gi">+      return;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+     // Transition to idle if not pressing movement keys
+     if (!(left.isDown || right.isDown || up.isDown || down.isDown)) {
+       this.stateMachine.transition(&#39;idle&#39;);
+<span class="gu">@@ -204,6 +217,32 @@</span>
+       this.stateMachine.transition(&#39;idle&#39;);
+     });
+   }
+<span class="gi">+}</span>
+<span class="gi">+</span>
+<span class="gi">+class DashState extends State {</span>
+<span class="gi">+  enter(scene, hero) {</span>
+<span class="gi">+    hero.setVelocity(0);</span>
+<span class="gi">+    hero.anims.play(`swing-${hero.direction}`);</span>
+<span class="gi">+    switch (hero.direction) {</span>
+<span class="gi">+      case &#39;up&#39;:</span>
+<span class="gi">+        hero.setVelocityY(-300);</span>
+<span class="gi">+        break;</span>
+<span class="gi">+      case &#39;down&#39;:</span>
+<span class="gi">+        hero.setVelocityY(300);</span>
+<span class="gi">+        break;</span>
+<span class="gi">+      case &#39;left&#39;:</span>
+<span class="gi">+        hero.setVelocityX(-300);</span>
+<span class="gi">+        break;</span>
+<span class="gi">+      case &#39;right&#39;:</span>
+<span class="gi">+        hero.setVelocityX(300);</span>
+<span class="gi">+        break;</span>
+<span class="gi">+    }</span>
+<span class="gi">+</span>
+<span class="gi">+    // Wait a third of a second and then go back to idle</span>
+<span class="gi">+    scene.time.delayedCall(300, () =&gt; {</span>
+<span class="gi">+      this.stateMachine.transition(&#39;idle&#39;);</span>
+<span class="gi">+    });</span>
+<span class="gi">+  }</span>
+ }
+
+ window.game = new Phaser.Game(config);
+</pre></div>
+<h3>Is this fast?</h3>
+<p>No idea. I haven't hit issues with my own game. I'm not terribly concerned about performance as my game is just a demo right now, so take that with a grain of salt.</p>
+<p>I don't think there's any glaring issues with it performance-wise, but I suspect having a bunch of state machines running each update loop might start to cause issues with their overhead. Some clever engineering could reuse states or even state machines between sprites, which might help.</p>
+<h3>What else could we do with this?</h3>
+<p>There's a lot of ideas I haven't touched upon here that are worth exploring:</p>
+<ul>
+<li>If states are classes, it stands to reason you can make more than one instance and accept parameters in their constructor.</li>
+<li>States could also subclass other states to share common logic or code between them.</li>
+<li>In my personal game, there are <code>exit</code> handlers as well as <code>enter</code> ones.</li>
+</ul>
+<h3>Final Project</h3>
+<p>Here's the final version of the code used for this post, available as another Glitch project for your reading and remixing pleasure:</p>
+<div class="glitch-embed-wrap">
+  <iframe
+    allow="geolocation; microphone; camera; midi; encrypted-media"
+    src="https://glitch.com/embed/#!/embed/phaser-fsm-example?path=public/client.js&previewSize=40"
+    alt="phaser-fsm-example on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+  </div>
+
+  
+    
+  <div class="blog-post">
+  
     <h2 class="blog-title"><a href="../blog/data-collection-at-mozilla-browser-errors/">Data Collection at Mozilla: Browser Errors</a></h2>
   
   <div class="meta">
