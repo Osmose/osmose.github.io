@@ -40,6 +40,93 @@
     
   <div class="blog-post">
   
+    <h2 class="blog-title"><a href="../blog/phaser-tiled-json-external-loader/">External Tilesets with Tiled and Phaser</a></h2>
+  
+  <div class="meta">
+    <span>
+      <i class="octicon octicon-calendar"></i>
+      March 3, 2019
+    </span>
+    <span>
+      <i class="octicon octicon-tag"></i>
+      phaser gamedev
+    </span>
+  </div>
+  <p><a href="https://www.mapeditor.org/">Tiled</a> is a popular tilemap editor, and <a href="https://phaser.io/">Phaser</a> has great built-in support for it. One feature of Tiled that Phaser <em>doesn't</em> support is external tilesets.</p>
+<p>In Tiled, a tileset can either be internal, meaning all the data for the tileset is included in the tilemap itself, or external, meaning that the tileset is a standalone file separate from the tilemap. The main benefit of external tilesets is that they can be shared between maps. You can update and change the tileset without having to update per-tilemap copies everywhere.</p>
+<p>Phaser, however, requires that tilesets be stored internally in the tilemaps they're used in. I finally ran into a point where I wanted multiple tilemaps in my game and wrote a custom loader that supports external tilesets.</p>
+<p>It's called <a href="https://github.com/Osmose/phaser-tiled-json-external-loader"><code>phaser-tiled-json-external-loader</code></a>, and you can install it via <a href="https://www.npmjs.com/package/phaser-tiled-json-external-loader">NPM</a> or manually download a <a href="https://github.com/Osmose/phaser-tiled-json-external-loader/releases">JavaScript bundle</a> to load in your game's HTML file. The <a href="https://github.com/Osmose/phaser-tiled-json-external-loader#phaser-tiled-json-external-loader">README</a> has more information on how to install and use the library. I've also got a <a href="https://glitch.com/">Glitch</a> project showing the library in action:</p>
+<div class="glitch-embed-wrap">
+  <iframe
+    allow="geolocation; microphone; camera; midi; encrypted-media"
+    src="https://glitch.com/embed/#!/embed/phaser-tiled-json-external-loader-example?path=public/client.js&previewSize=27"
+    alt="phaser-tiled-json-external-loader-example on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div><h3>Why doesn't Phaser support external tilesets?</h3>
+<p>I can only speculate based on the code<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>. Phaser loads tilemaps as JSON, and doesn't actually parse that JSON until you attempt to create a tilemap object during a scene's <code>create</code> phase. While parsing the Tiled JSON, it <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/tilemaps/parsers/tiled/ParseTilesets.js#L35">tries to load each tileset</a>:</p>
+<div class="highlight"><pre><span></span><span class="c1">//  name, firstgid, width, height, margin, spacing, properties</span>
+<span class="kd">var</span> <span class="nx">set</span> <span class="o">=</span> <span class="nx">json</span><span class="p">.</span><span class="nx">tilesets</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="nx">set</span><span class="p">.</span><span class="nx">source</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">&#39;Phaser can\&#39;t load external tilesets. Use the Embed Tileset button and then export the map again.&#39;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>At this point, we're past the <code>preload</code> step of the scene, and the API for creating tilemaps isn't asynchronous, so going back and loading another external JSON file isn't really an option at this point.</p>
+<p>IMO a "proper" fix would be similar to how the images for tilemaps are handled. Even with internal tilesets, the images used in the tilesets must be loaded separately and passed when creating a tileset:</p>
+<div class="highlight"><pre><span></span><span class="kr">const</span> <span class="nx">scene</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">preload</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// The tileset image is not automagically loaded by Phaser</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">load</span><span class="p">.</span><span class="nx">image</span><span class="p">(</span><span class="s1">&#39;tilesetImage&#39;</span><span class="p">,</span> <span class="s1">&#39;https://cdn.glitch.com/1780c601-5e7d-42f6-8757-c55452affe65%2Ftiles.png?1551608607854&#39;</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">load</span><span class="p">.</span><span class="nx">tilemapTiled</span><span class="p">(</span><span class="s1">&#39;tilemap&#39;</span><span class="p">,</span> <span class="s1">&#39;tilemap.json&#39;</span><span class="p">);</span>
+  <span class="p">},</span>
+
+  <span class="nx">create</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">tilemap</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">make</span><span class="p">.</span><span class="nx">tilemap</span><span class="p">({</span><span class="nx">key</span><span class="o">:</span> <span class="s1">&#39;tilemap&#39;</span><span class="p">});</span>
+    <span class="c1">// tilesetImage here is referring to the manually-loaded tileset image above</span>
+    <span class="kr">const</span> <span class="nx">tileset</span> <span class="o">=</span> <span class="nx">tilemap</span><span class="p">.</span><span class="nx">addTilesetImage</span><span class="p">(</span><span class="s1">&#39;tiles&#39;</span><span class="p">,</span> <span class="s1">&#39;tilesetImage&#39;</span><span class="p">);</span>
+    <span class="nx">tilemap</span><span class="p">.</span><span class="nx">createStaticLayer</span><span class="p">(</span><span class="s1">&#39;layer1&#39;</span><span class="p">,</span> <span class="nx">tileset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="p">},</span>
+<span class="p">};</span>
+</pre></div>
+<p>Similarly, external tilesets should probably be a new type of thing that you could load in the <code>preload</code> step and associate with one (or many) tilemaps.</p>
+<p>I tried to figure out how to write a patch like this to fix Phaser directly, but there are multiple types of tilemaps and tilesets supported in Phaser, and I don't really understand the internals well enough yet.</p>
+<h3>So how does the loader work?</h3>
+<p>So if Phaser only supports internal tilesets, and doesn't parse the tilemap until the <code>create</code> step, what if we loaded and inserted the external tilesets <em>into</em> our tilemaps before Phaser tried parsing them? Some people on the Phaser Discord recommend I write a preprocessor to do this (as they had been doing for a while), but I wanted to build something a bit more broadly reusable.</p>
+<p>I spent a few hours reading the code for how loaders work in Phaser and found out that there are things called <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/loader/MultiFile.js">MultiFile loaders</a> that support loading dependent files based on the contents of a manifest-like file. Using the <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/loader/filetypes/MultiAtlasFile.js">MutliAtlasFile loader</a> as a based, I wrote a new loader that:</p>
+<ol>
+<li>Loads the tilemap JSON</li>
+<li>Finds all tilesets that have a <code>source</code> property</li>
+<li>Processes each <code>source</code> property as relative to the tilemap's URL to get the URL for each tileset</li>
+<li>Loads each external tileset</li>
+<li>Inserts each loaded tileset back into the tilemap JSON</li>
+<li>Adds the modified tilemap JSON into the tilemap cache</li>
+</ol>
+<p>I tested with my own game and it seemed to work fine. The remaining steps were to add a webpage-ready bundle for projects that aren't using NPM or a JavaScript bundler, write instructions, and publish the package on NPM.</p>
+<h3>Caveats</h3>
+<p>There's still some caveats to this method of loading external tilesets:</p>
+<ul>
+<li><p>Tilesets are duplicated between tilemaps in memory. Sharing references to tilesets would require some more complex coordination in the loader, or a more detailed refactor of how Phaser handles tilesets.</p>
+</li>
+<li><p>I don't actually know if Phaser will avoid re-requesting a tileset if it is referenced by more than one tilemap. Presumably the browser will cache the request, at least.</p>
+</li>
+<li><p>The loader is limited to JSON tilemaps and tilesets. TMX formatted tilesets are not supported.</p>
+</li>
+</ul>
+<p>But it works for me and I did it for free so whooooooooooo caressssssss</p>
+<div class="footnotes">
+<hr>
+<ol><li id="fn-1"><p>I mean I actually could just ask the maintainer if I really wanted to.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+  </div>
+
+  
+    
+  <div class="blog-post">
+  
     <h2 class="blog-title"><a href="../blog/phaser-finite-state-machine/">Phaser Tutorial Series: Finite State Machine</a></h2>
   
   <div class="meta">
