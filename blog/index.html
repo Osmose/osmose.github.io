@@ -74,7 +74,7 @@
 <span class="p">}</span>
 </pre></div>
 <p>At this point, we're past the <code>preload</code> step of the scene, and the API for creating tilemaps isn't asynchronous, so going back and loading another external JSON file isn't really an option at this point.</p>
-<p>IMO a "proper" fix would be similar to how the images for tilemaps are handled. Even with internal tilesets, the images used in the tilesets must be loaded separately and passed when creating a tileset:</p>
+<p>In my opinion, a "proper" fix would be similar to how the images for tilemaps are handled. Even with internal tilesets, the images used in the tilesets must be loaded separately and passed when creating a tileset:</p>
 <div class="highlight"><pre><span></span><span class="kr">const</span> <span class="nx">scene</span> <span class="o">=</span> <span class="p">{</span>
   <span class="nx">preload</span><span class="p">()</span> <span class="p">{</span>
     <span class="c1">// The tileset image is not automagically loaded by Phaser</span>
