@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -63,7 +65,7 @@
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div><h3>Why doesn't Phaser support external tilesets?</h3>
-<p>I can only speculate based on the code<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>. Phaser loads tilemaps as JSON, and doesn't actually parse that JSON until you attempt to create a tilemap object during a scene's <code>create</code> phase. While parsing the Tiled JSON, it <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/tilemaps/parsers/tiled/ParseTilesets.js#L35">tries to load each tileset</a>:</p>
+<p>I can only speculate based on the code<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. Phaser loads tilemaps as JSON, and doesn't actually parse that JSON until you attempt to create a tilemap object during a scene's <code>create</code> phase. While parsing the Tiled JSON, it <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/tilemaps/parsers/tiled/ParseTilesets.js#L35">tries to load each tileset</a>:</p>
 <div class="highlight"><pre><span></span><span class="c1">//  name, firstgid, width, height, margin, spacing, properties</span>
 <span class="kd">var</span> <span class="nx">set</span> <span class="o">=</span> <span class="nx">json</span><span class="p">.</span><span class="nx">tilesets</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
 
@@ -116,7 +118,7 @@
 <p>But it works for me and I did it for free so whooooooooooo caressssssss</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>I mean I actually could just ask the maintainer if I really wanted to.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>I mean I actually could just ask the maintainer if I really wanted to.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

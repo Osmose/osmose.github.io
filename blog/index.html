@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../blog/">Blog</a>
+        <li >
+          <a href="../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -64,7 +66,7 @@
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div><h3>Why doesn't Phaser support external tilesets?</h3>
-<p>I can only speculate based on the code<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>. Phaser loads tilemaps as JSON, and doesn't actually parse that JSON until you attempt to create a tilemap object during a scene's <code>create</code> phase. While parsing the Tiled JSON, it <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/tilemaps/parsers/tiled/ParseTilesets.js#L35">tries to load each tileset</a>:</p>
+<p>I can only speculate based on the code<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. Phaser loads tilemaps as JSON, and doesn't actually parse that JSON until you attempt to create a tilemap object during a scene's <code>create</code> phase. While parsing the Tiled JSON, it <a href="https://github.com/photonstorm/phaser/blob/c85648e06a7bf1de830acb5162dd6705f98ae947/src/tilemaps/parsers/tiled/ParseTilesets.js#L35">tries to load each tileset</a>:</p>
 <div class="highlight"><pre><span></span><span class="c1">//  name, firstgid, width, height, margin, spacing, properties</span>
 <span class="kd">var</span> <span class="nx">set</span> <span class="o">=</span> <span class="nx">json</span><span class="p">.</span><span class="nx">tilesets</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
 
@@ -117,7 +119,7 @@
 <p>But it works for me and I did it for free so whooooooooooo caressssssss</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>I mean I actually could just ask the maintainer if I really wanted to.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>I mean I actually could just ask the maintainer if I really wanted to.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -775,7 +777,7 @@
 <h2>Maybe JavaScript errors are a bad thing</h2>
 <p>The user interface of Firefox is written in JavaScript (along with <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL">XUL</a>, HTML, and CSS). JavaScript powering the UI is “privileged” JavaScript, which is separate from JavaScript in a normal webpage, and can do things that normal webpages cannot do, such as read the filesystem.</p>
 <p>When something goes wrong and an error occurs in this privileged JavaScript (let’s call them “browser errors”), it ends up logged to the <a href="https://developer.mozilla.org/en-US/docs/Tools/Browser_Console">Browser Console</a>. Most users aren’t looking at the Browser Console, so these errors often go unnoticed.</p>
-<p>While working on <a href="https://wiki.mozilla.org/Firefox/Shield">Shield</a>, I found that our QA cycle<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup> involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the <a href="https://www.mozilla.org/en-US/firefox/channel/desktop/">Nightly channel</a> before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?<sup class="footnote-ref" id="fnref-2"><a href="#fn-2" rel="footnote">2</a></sup></p>
+<p>While working on <a href="https://wiki.mozilla.org/Firefox/Shield">Shield</a>, I found that our QA cycle<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the <a href="https://www.mozilla.org/en-US/firefox/channel/desktop/">Nightly channel</a> before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup></p>
 <h2>So let’s a great plan</h2>
 <p>I told my boss a few times that browser error collection was a problem that I was interested in solving. I was pretty convinced that there was useful info to be gleaned from collecting these errors, but my beliefs aren’t really enough to justify building a production-quality error collection service. This was complicated by the fact that errors may contain info that can personally identify a user:</p>
 <ul>
@@ -837,16 +839,16 @@
     It’s important to note that this mechanism doesn’t need to be, say, a checkbox in the preferences UI. Depending on the context of the data collection, an about:config preference or some other mechanism may be good enough.</dd>
 </dl><h3>Rereing Viewquest?</h3>
 <p>In certain cases, requests may be escalated to Mozilla’s legal team if they involve changes to our privacy policy or other special circumstances. In the case of browser error collection, we wanted a legal review to double-check whether a user having used private browsing mode was considered category 2 or 3 data, as well as to approve our proposal for collecting category 3 data in error messages and file paths.</p>
-<p>Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment<sup class="footnote-ref" id="fnref-3"><a href="#fn-3" rel="footnote">3</a></sup>. Legal approved the plan, which we implemented using built-in Sentry access control.</p>
+<p>Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>. Legal approved the plan, which we implemented using built-in Sentry access control.</p>
 <h2>Welcome to errortown</h2>
 <p>With code and privacy review finished, I landed the patch and waited patiently for Sentry to start receiving errors. And it did!</p>
 <p>Since we started receiving the data, I’ve spent most of my time recruiting Firefox developers who want to search through the errors we’re collecting, and refining the data we’re collecting to make it more more useful to those developers. Of course, changes to the data collection require new privacy reviews, although the smaller the changes are, the easier it is to fill out and justify the data collection.</p>
 <p>But from my standpoint as a Mozilla employee, these data reviews are the primary way I see Mozilla making good on its promise to respect user privacy and avoid needless data collection. A lot of thought has gone into this process, and I can personally attest to their effectiveness.</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>Actually, we already do collect crashes as part of the <a href="http://socorro.readthedocs.io/en/latest/">Socorro</a> project, which I currently work on. But Socorro does not collect any info about the browser errors in question.<a href="#fnref-2" rev="footnote">&#8617;</a></p></li>
-<li id="fn-3"><p>Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.<a href="#fnref-3" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>Actually, we already do collect crashes as part of the <a href="http://socorro.readthedocs.io/en/latest/">Socorro</a> project, which I currently work on. But Socorro does not collect any info about the browser errors in question.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -926,7 +928,7 @@
 <span class="p">};</span>
 </pre></div>
 <p>(See also <a href="https://github.com/mozilla/normandy/pull/877">the pull request itself</a>.)</p>
-<p>Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in <code>node_modules</code><sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>. The output of this config is one file per entry point inside a <code>vendor</code> subdirectory. You can then import these files as if they were normal <code>.jsm</code> files:</p>
+<p>Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in <code>node_modules</code><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. The output of this config is one file per entry point inside a <code>vendor</code> subdirectory. You can then import these files as if they were normal <code>.jsm</code> files:</p>
 <div class="highlight"><pre><span></span><span class="nx">Cu</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="s2">&quot;resource://shield-recipe-client/vendor/mozjexl.js&quot;</span><span class="p">);</span>
 <span class="kr">const</span> <span class="nx">jexl</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">moxjexl</span><span class="p">.</span><span class="nx">Jexl</span><span class="p">();</span>
 </pre></div>
@@ -976,7 +978,7 @@
 </ul>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>Did you know that Webpack will automatically use the main module defined in <code>package.json</code> as the entry point if the path points to a directory with that file?<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>Did you know that Webpack will automatically use the main module defined in <code>package.json</code> as the entry point if the path points to a directory with that file?<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -1041,7 +1043,7 @@
 </pre></div>
 <p><strong>"When we insert Q() into sys.modules, all the globals become None"</strong></p>
 <p>What? Why?! I mean I can see how that's not an issue for modules, which are usually the only things inside <code>sys.modules</code>, but still. I tried chasing this down, but the entire <code>sys</code> module is <a href="https://github.com/python/cpython/blob/48fb766f70d9ca9d5934cbddbe8d8e7972cb6343/Python/sysmodule.c">written in C</a>, and that ain't my business.</p>
-<p>Most of the other bits inside <code>Q</code> are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for <code>__truediv__</code> and <code>__or__</code> for those weird operator versions of logging, etc. If you've never heard of callable types<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup> before, that's the reason why an instance of this class can be both called as a function and treated as a value.</p>
+<p>Most of the other bits inside <code>Q</code> are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for <code>__truediv__</code> and <code>__or__</code> for those weird operator versions of logging, etc. If you've never heard of callable types<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> before, that's the reason why an instance of this class can be both called as a function and treated as a value.</p>
 <p>So what's <code>__call__</code> do?</p>
 <h2>Ghost Magic</h2>
 <div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -1091,7 +1093,7 @@
 </ul>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p><a href="https://docs.python.org/3/reference/datamodel.html">Check out this page</a> and search for "Callable Types" and/or <code>__call__</code>.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p><a href="https://docs.python.org/3/reference/datamodel.html">Check out this page</a> and search for "Callable Types" and/or <code>__call__</code>.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -1225,11 +1227,11 @@
       mozilla
     </span>
   </div>
-  <p>Mozilla hosts a few <a href="http://www.list.org/">Mailman</a> instances<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.</p>
+  <p>Mozilla hosts a few <a href="http://www.list.org/">Mailman</a> instances<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.</p>
 <p><a href="../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"><img alt="Mailman default admindb interface" src="/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"></a></p>
 <p>The form inputs are <em>tiny</em>. And it takes, like, 3 clicks to discard and blacklist spam per-sender. And, because I only learned about the options for filtering by spam headers within the past month, I had to use this interface on a daily basis for years.</p>
 <p>Finally, about a year or so ago, I got fed up and wrote a bookmarklet that auto-clicked every form element needed to discard and blacklist every email on the page. Since it's rare for the lists I moderate to get legitimate emails that are marked for moderation, I didn't need anything more complex.</p>
-<p>However, we recently updated our Mailman pages to use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">CSP</a>, specifically the <code>script-src none</code> directive. Because the pages no longer accept <em>any</em> URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative<sup class="footnote-ref" id="fnref-2"><a href="#fn-2" rel="footnote">2</a></sup>.</p>
+<p>However, we recently updated our Mailman pages to use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">CSP</a>, specifically the <code>script-src none</code> directive. Because the pages no longer accept <em>any</em> URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>.</p>
 <p>Luckily, I happen to have experience making <a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions">WebExtensions</a> that inject <a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Content_scripts">content scripts</a> into web pages. It's as simple as creating a <code>manifest.json</code> file:</p>
 <div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;manifest_version&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
@@ -1263,8 +1265,8 @@
 <p>Big thanks to the Add-ons team and community for making WebExtensions super-easy to use!</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>I'm not entirely sure why we have two, but it's cool.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>I did find <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=866522">bug 866522</a>, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.<a href="#fnref-2" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>I'm not entirely sure why we have two, but it's cool.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>I did find <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=866522">bug 866522</a>, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -1380,7 +1382,7 @@
   <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">isTestingOrigin</span><span class="p">(</span><span class="nx">uri</span><span class="p">);</span>
 <span class="p">},</span>
 </pre></div>
-<p>MDN tells us that <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/content"><code>content</code></a> is the Window object for the primary content window; in other words, the webpage. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top"><code>top</code></a>, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>.</p>
+<p>MDN tells us that <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/content"><code>content</code></a> is the Window object for the primary content window; in other words, the webpage. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top"><code>top</code></a>, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>.</p>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top">documentURIObject</a> lets us check the origin of the loaded webpage. <code>chrome://</code> URIs get passed immediately, since they're already privileged. The next three checks are more interesting:</p>
 <h4>isSafeScheme</h4>
 <div class="highlight"><pre><span></span><span class="nx">isSafeScheme</span><span class="p">(</span><span class="nx">aURI</span><span class="p">)</span> <span class="p">{</span>
@@ -1416,12 +1418,12 @@
 # See nsPermissionManager.cpp for more...
 
 # UITour
-origin    uitour    1    https://www.mozilla.org
-origin    uitour    1    https://self-repair.mozilla.org
-origin    uitour    1    https://support.mozilla.org
-origin    uitour    1    https://addons.mozilla.org
-origin    uitour    1    https://discovery.addons.mozilla.org
-origin    uitour    1    about:home
+origin  uitour  1   https://www.mozilla.org
+origin  uitour  1   https://self-repair.mozilla.org
+origin  uitour  1   https://support.mozilla.org
+origin  uitour  1   https://addons.mozilla.org
+origin  uitour  1   https://discovery.addons.mozilla.org
+origin  uitour  1   about:home
 
 # ...
 </pre></div>
@@ -1489,7 +1491,7 @@ origin    uitour    1    about:home
 <p>It takes effort, but I've found that deep-dives like this are a great way to both understand a single piece of code, and to learn from the style of the code's author(s). Hopefully ya'll will find this useful as well!</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

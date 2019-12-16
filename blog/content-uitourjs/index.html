@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -145,7 +147,7 @@
   <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">isTestingOrigin</span><span class="p">(</span><span class="nx">uri</span><span class="p">);</span>
 <span class="p">},</span>
 </pre></div>
-<p>MDN tells us that <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/content"><code>content</code></a> is the Window object for the primary content window; in other words, the webpage. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top"><code>top</code></a>, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>.</p>
+<p>MDN tells us that <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/content"><code>content</code></a> is the Window object for the primary content window; in other words, the webpage. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top"><code>top</code></a>, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>.</p>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/top">documentURIObject</a> lets us check the origin of the loaded webpage. <code>chrome://</code> URIs get passed immediately, since they're already privileged. The next three checks are more interesting:</p>
 <h4>isSafeScheme</h4>
 <div class="highlight"><pre><span></span><span class="nx">isSafeScheme</span><span class="p">(</span><span class="nx">aURI</span><span class="p">)</span> <span class="p">{</span>
@@ -181,12 +183,12 @@
 # See nsPermissionManager.cpp for more...
 
 # UITour
-origin    uitour    1    https://www.mozilla.org
-origin    uitour    1    https://self-repair.mozilla.org
-origin    uitour    1    https://support.mozilla.org
-origin    uitour    1    https://addons.mozilla.org
-origin    uitour    1    https://discovery.addons.mozilla.org
-origin    uitour    1    about:home
+origin  uitour  1   https://www.mozilla.org
+origin  uitour  1   https://self-repair.mozilla.org
+origin  uitour  1   https://support.mozilla.org
+origin  uitour  1   https://addons.mozilla.org
+origin  uitour  1   https://discovery.addons.mozilla.org
+origin  uitour  1   about:home
 
 # ...
 </pre></div>
@@ -254,7 +256,7 @@ origin    uitour    1    about:home
 <p>It takes effort, but I've found that deep-dives like this are a great way to both understand a single piece of code, and to learn from the style of the code's author(s). Hopefully ya'll will find this useful as well!</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

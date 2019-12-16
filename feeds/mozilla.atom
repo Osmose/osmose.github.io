@@ -11,7 +11,7 @@
   <generator uri="https://github.com/ajdavis/lektor-atom" version="0.2">Lektor Atom Plugin</generator>
   <entry xml:base="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/">
     <title type="text">Data Collection at Mozilla: Browser Errors</title>
-    <id>urn:uuid:6edb72ac-596e-3051-9a2c-b9ceec88cb40</id>
+    <id>urn:uuid:2b7bbdb7-b814-3129-8f07-4dc966beccc3</id>
     <updated>2018-04-11T10:02:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/data-collection-at-mozilla-browser-errors/" />
     <author>
@@ -25,7 +25,7 @@
 &lt;h2&gt;Maybe JavaScript errors are a bad thing&lt;/h2&gt;
 &lt;p&gt;The user interface of Firefox is written in JavaScript (along with &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL&quot;&gt;XUL&lt;/a&gt;, HTML, and CSS). JavaScript powering the UI is “privileged” JavaScript, which is separate from JavaScript in a normal webpage, and can do things that normal webpages cannot do, such as read the filesystem.&lt;/p&gt;
 &lt;p&gt;When something goes wrong and an error occurs in this privileged JavaScript (let’s call them “browser errors”), it ends up logged to the &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Tools/Browser_Console&quot;&gt;Browser Console&lt;/a&gt;. Most users aren’t looking at the Browser Console, so these errors often go unnoticed.&lt;/p&gt;
-&lt;p&gt;While working on &lt;a href=&quot;https://wiki.mozilla.org/Firefox/Shield&quot;&gt;Shield&lt;/a&gt;, I found that our QA cycle&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the &lt;a href=&quot;https://www.mozilla.org/en-US/firefox/channel/desktop/&quot;&gt;Nightly channel&lt;/a&gt; before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot; rel=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;While working on &lt;a href=&quot;https://wiki.mozilla.org/Firefox/Shield&quot;&gt;Shield&lt;/a&gt;, I found that our QA cycle&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the &lt;a href=&quot;https://www.mozilla.org/en-US/firefox/channel/desktop/&quot;&gt;Nightly channel&lt;/a&gt; before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 &lt;h2&gt;So let’s a great plan&lt;/h2&gt;
 &lt;p&gt;I told my boss a few times that browser error collection was a problem that I was interested in solving. I was pretty convinced that there was useful info to be gleaned from collecting these errors, but my beliefs aren’t really enough to justify building a production-quality error collection service. This was complicated by the fact that errors may contain info that can personally identify a user:&lt;/p&gt;
 &lt;ul&gt;
@@ -87,23 +87,23 @@
     It’s important to note that this mechanism doesn’t need to be, say, a checkbox in the preferences UI. Depending on the context of the data collection, an about:config preference or some other mechanism may be good enough.&lt;/dd&gt;
 &lt;/dl&gt;&lt;h3&gt;Rereing Viewquest?&lt;/h3&gt;
 &lt;p&gt;In certain cases, requests may be escalated to Mozilla’s legal team if they involve changes to our privacy policy or other special circumstances. In the case of browser error collection, we wanted a legal review to double-check whether a user having used private browsing mode was considered category 2 or 3 data, as well as to approve our proposal for collecting category 3 data in error messages and file paths.&lt;/p&gt;
-&lt;p&gt;Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-3&quot;&gt;&lt;a href=&quot;#fn-3&quot; rel=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;. Legal approved the plan, which we implemented using built-in Sentry access control.&lt;/p&gt;
+&lt;p&gt;Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-3&quot;&gt;&lt;a href=&quot;#fn-3&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;. Legal approved the plan, which we implemented using built-in Sentry access control.&lt;/p&gt;
 &lt;h2&gt;Welcome to errortown&lt;/h2&gt;
 &lt;p&gt;With code and privacy review finished, I landed the patch and waited patiently for Sentry to start receiving errors. And it did!&lt;/p&gt;
 &lt;p&gt;Since we started receiving the data, I’ve spent most of my time recruiting Firefox developers who want to search through the errors we’re collecting, and refining the data we’re collecting to make it more more useful to those developers. Of course, changes to the data collection require new privacy reviews, although the smaller the changes are, the easier it is to fill out and justify the data collection.&lt;/p&gt;
 &lt;p&gt;But from my standpoint as a Mozilla employee, these data reviews are the primary way I see Mozilla making good on its promise to respect user privacy and avoid needless data collection. A lot of thought has gone into this process, and I can personally attest to their effectiveness.&lt;/p&gt;
 &lt;div class=&quot;footnotes&quot;&gt;
 &lt;hr&gt;
-&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;Actually, we already do collect crashes as part of the &lt;a href=&quot;http://socorro.readthedocs.io/en/latest/&quot;&gt;Socorro&lt;/a&gt; project, which I currently work on. But Socorro does not collect any info about the browser errors in question.&lt;a href=&quot;#fnref-2&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&quot;fn-3&quot;&gt;&lt;p&gt;Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.&lt;a href=&quot;#fnref-3&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.&lt;a href=&quot;#fnref-1&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;Actually, we already do collect crashes as part of the &lt;a href=&quot;http://socorro.readthedocs.io/en/latest/&quot;&gt;Socorro&lt;/a&gt; project, which I currently work on. But Socorro does not collect any info about the browser errors in question.&lt;a href=&quot;#fnref-2&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-3&quot;&gt;&lt;p&gt;Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.&lt;a href=&quot;#fnref-3&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </content>
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/">
     <title type="text">Using NPM Libraries in Firefox via Webpack</title>
-    <id>urn:uuid:045b9ac2-709b-350f-a17e-21fb2792bc9a</id>
+    <id>urn:uuid:69ab0e51-e3d7-3598-9b4b-f4b462036173</id>
     <updated>2017-07-11T09:50:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/using-npm-libraries-in-firefox-via-webpack/" />
     <author>
@@ -167,7 +167,7 @@
 &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;(See also &lt;a href=&quot;https://github.com/mozilla/normandy/pull/877&quot;&gt;the pull request itself&lt;/a&gt;.)&lt;/p&gt;
-&lt;p&gt;Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in &lt;code&gt;node_modules&lt;/code&gt;&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;. The output of this config is one file per entry point inside a &lt;code&gt;vendor&lt;/code&gt; subdirectory. You can then import these files as if they were normal &lt;code&gt;.jsm&lt;/code&gt; files:&lt;/p&gt;
+&lt;p&gt;Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in &lt;code&gt;node_modules&lt;/code&gt;&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;. The output of this config is one file per entry point inside a &lt;code&gt;vendor&lt;/code&gt; subdirectory. You can then import these files as if they were normal &lt;code&gt;.jsm&lt;/code&gt; files:&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Cu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;resource://shield-recipe-client/vendor/mozjexl.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;jexl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;moxjexl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Jexl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -217,14 +217,14 @@
 &lt;/ul&gt;
 &lt;div class=&quot;footnotes&quot;&gt;
 &lt;hr&gt;
-&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Did you know that Webpack will automatically use the main module defined in &lt;code&gt;package.json&lt;/code&gt; as the entry point if the path points to a directory with that file?&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;Did you know that Webpack will automatically use the main module defined in &lt;code&gt;package.json&lt;/code&gt; as the entry point if the path points to a directory with that file?&lt;a href=&quot;#fnref-1&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </content>
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/q-is-scary/">
     <title type="text">Q is Scary</title>
-    <id>urn:uuid:b7d36eb2-5f3b-33aa-aac3-d705be77d875</id>
+    <id>urn:uuid:d1808816-67d4-356b-8463-9c5beb7eae39</id>
     <updated>2017-06-08T12:41:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/q-is-scary/" />
     <author>
@@ -273,7 +273,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;strong&gt;&quot;When we insert Q() into sys.modules, all the globals become None&quot;&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;What? Why?! I mean I can see how that's not an issue for modules, which are usually the only things inside &lt;code&gt;sys.modules&lt;/code&gt;, but still. I tried chasing this down, but the entire &lt;code&gt;sys&lt;/code&gt; module is &lt;a href=&quot;https://github.com/python/cpython/blob/48fb766f70d9ca9d5934cbddbe8d8e7972cb6343/Python/sysmodule.c&quot;&gt;written in C&lt;/a&gt;, and that ain't my business.&lt;/p&gt;
-&lt;p&gt;Most of the other bits inside &lt;code&gt;Q&lt;/code&gt; are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for &lt;code&gt;__truediv__&lt;/code&gt; and &lt;code&gt;__or__&lt;/code&gt; for those weird operator versions of logging, etc. If you've never heard of callable types&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; before, that's the reason why an instance of this class can be both called as a function and treated as a value.&lt;/p&gt;
+&lt;p&gt;Most of the other bits inside &lt;code&gt;Q&lt;/code&gt; are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for &lt;code&gt;__truediv__&lt;/code&gt; and &lt;code&gt;__or__&lt;/code&gt; for those weird operator versions of logging, etc. If you've never heard of callable types&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; before, that's the reason why an instance of this class can be both called as a function and treated as a value.&lt;/p&gt;
 &lt;p&gt;So what's &lt;code&gt;__call__&lt;/code&gt; do?&lt;/p&gt;
 &lt;h2&gt;Ghost Magic&lt;/h2&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;fm&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
@@ -323,14 +323,14 @@
 &lt;/ul&gt;
 &lt;div class=&quot;footnotes&quot;&gt;
 &lt;hr&gt;
-&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html&quot;&gt;Check out this page&lt;/a&gt; and search for &quot;Callable Types&quot; and/or &lt;code&gt;__call__&lt;/code&gt;.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html&quot;&gt;Check out this page&lt;/a&gt; and search for &quot;Callable Types&quot; and/or &lt;code&gt;__call__&lt;/code&gt;.&lt;a href=&quot;#fnref-1&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </content>
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/">
     <title type="text">Build and Sign WebExtensions with CircleCI</title>
-    <id>urn:uuid:30215235-cc4e-38dd-8575-0fa445c74e7d</id>
+    <id>urn:uuid:c22e72fa-d83f-3a3c-8c55-ee31be6551d0</id>
     <updated>2017-05-04T01:10:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/build-and-sign-webextensions-with-circleci/" />
     <author>
@@ -433,17 +433,17 @@
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/">
     <title type="text">mailman-admin-helper: Mildly Easier Mailman Spam Management</title>
-    <id>urn:uuid:5903dbfa-5f0a-3805-aeff-59d5b115c14f</id>
+    <id>urn:uuid:3db30552-f230-3876-acb1-8191739a5f79</id>
     <updated>2017-04-30T06:34:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/" />
     <author>
       <name></name>
     </author>
-    <content type="html">&lt;p&gt;Mozilla hosts a few &lt;a href=&quot;http://www.list.org/&quot;&gt;Mailman&lt;/a&gt; instances&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.&lt;/p&gt;
+    <content type="html">&lt;p&gt;Mozilla hosts a few &lt;a href=&quot;http://www.list.org/&quot;&gt;Mailman&lt;/a&gt; instances&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.&lt;/p&gt;
 &lt;p&gt;&lt;a href=&quot;../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png&quot;&gt;&lt;img alt=&quot;Mailman default admindb interface&quot; src=&quot;/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;The form inputs are &lt;em&gt;tiny&lt;/em&gt;. And it takes, like, 3 clicks to discard and blacklist spam per-sender. And, because I only learned about the options for filtering by spam headers within the past month, I had to use this interface on a daily basis for years.&lt;/p&gt;
 &lt;p&gt;Finally, about a year or so ago, I got fed up and wrote a bookmarklet that auto-clicked every form element needed to discard and blacklist every email on the page. Since it's rare for the lists I moderate to get legitimate emails that are marked for moderation, I didn't need anything more complex.&lt;/p&gt;
-&lt;p&gt;However, we recently updated our Mailman pages to use &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy&quot;&gt;CSP&lt;/a&gt;, specifically the &lt;code&gt;script-src none&lt;/code&gt; directive. Because the pages no longer accept &lt;em&gt;any&lt;/em&gt; URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot; rel=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;However, we recently updated our Mailman pages to use &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy&quot;&gt;CSP&lt;/a&gt;, specifically the &lt;code&gt;script-src none&lt;/code&gt; directive. Because the pages no longer accept &lt;em&gt;any&lt;/em&gt; URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-2&quot;&gt;&lt;a href=&quot;#fn-2&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
 &lt;p&gt;Luckily, I happen to have experience making &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/WebExtensions&quot;&gt;WebExtensions&lt;/a&gt; that inject &lt;a href=&quot;https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Content_scripts&quot;&gt;content scripts&lt;/a&gt; into web pages. It's as simple as creating a &lt;code&gt;manifest.json&lt;/code&gt; file:&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;manifest_version&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
@@ -477,15 +477,15 @@
 &lt;p&gt;Big thanks to the Add-ons team and community for making WebExtensions super-easy to use!&lt;/p&gt;
 &lt;div class=&quot;footnotes&quot;&gt;
 &lt;hr&gt;
-&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;I'm not entirely sure why we have two, but it's cool.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;I did find &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=866522&quot;&gt;bug 866522&lt;/a&gt;, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.&lt;a href=&quot;#fnref-2&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;I'm not entirely sure why we have two, but it's cool.&lt;a href=&quot;#fnref-1&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&quot;fn-2&quot;&gt;&lt;p&gt;I did find &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=866522&quot;&gt;bug 866522&lt;/a&gt;, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.&lt;a href=&quot;#fnref-2&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </content>
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/content-uitourjs/">
     <title type="text">content-UITour.js</title>
-    <id>urn:uuid:8688ccde-00c7-3ea0-8160-436f3cccde3b</id>
+    <id>urn:uuid:a797516f-2976-3bce-95a4-9a26bf2fb95a</id>
     <updated>2017-04-25T08:57:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/content-uitourjs/" />
     <author>
@@ -585,7 +585,7 @@
   &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isTestingOrigin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;uri&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;MDN tells us that &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/content&quot;&gt;&lt;code&gt;content&lt;/code&gt;&lt;/a&gt; is the Window object for the primary content window; in other words, the webpage. &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/top&quot;&gt;&lt;code&gt;top&lt;/code&gt;&lt;/a&gt;, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot; rel=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;MDN tells us that &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/content&quot;&gt;&lt;code&gt;content&lt;/code&gt;&lt;/a&gt; is the Window object for the primary content window; in other words, the webpage. &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/top&quot;&gt;&lt;code&gt;top&lt;/code&gt;&lt;/a&gt;, on the other hand, is the topmost window in the window hierarchy (relevant for webpages that get loaded in iframes). Thus, the first check is to make sure we're not in some sort of frame. Without this, a webpage could control when UITour executes things by loading a whitelisted origin in an iframe&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-1&quot;&gt;&lt;a href=&quot;#fn-1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/top&quot;&gt;documentURIObject&lt;/a&gt; lets us check the origin of the loaded webpage. &lt;code&gt;chrome://&lt;/code&gt; URIs get passed immediately, since they're already privileged. The next three checks are more interesting:&lt;/p&gt;
 &lt;h4&gt;isSafeScheme&lt;/h4&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isSafeScheme&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;aURI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -621,12 +621,12 @@
 # See nsPermissionManager.cpp for more...
 
 # UITour
-origin    uitour    1    https://www.mozilla.org
-origin    uitour    1    https://self-repair.mozilla.org
-origin    uitour    1    https://support.mozilla.org
-origin    uitour    1    https://addons.mozilla.org
-origin    uitour    1    https://discovery.addons.mozilla.org
-origin    uitour    1    about:home
+origin  uitour  1   https://www.mozilla.org
+origin  uitour  1   https://self-repair.mozilla.org
+origin  uitour  1   https://support.mozilla.org
+origin  uitour  1   https://addons.mozilla.org
+origin  uitour  1   https://discovery.addons.mozilla.org
+origin  uitour  1   about:home
 
 # ...
 &lt;/pre&gt;&lt;/div&gt;
@@ -694,14 +694,14 @@ origin    uitour    1    about:home
 &lt;p&gt;It takes effort, but I've found that deep-dives like this are a great way to both understand a single piece of code, and to learn from the style of the code's author(s). Hopefully ya'll will find this useful as well!&lt;/p&gt;
 &lt;div class=&quot;footnotes&quot;&gt;
 &lt;hr&gt;
-&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.&lt;a href=&quot;#fnref-1&quot; rev=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;ol&gt;&lt;li id=&quot;fn-1&quot;&gt;&lt;p&gt;While this isn't a security issue on its own, it gives some level of control to an attacker, which generally should be avoided where possible.&lt;a href=&quot;#fnref-1&quot; class=&quot;footnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </content>
   </entry>
   <entry xml:base="http://www.mkelly.me/blog/caching-async-operations-via-promises/">
     <title type="text">Caching Async Operations via Promises</title>
-    <id>urn:uuid:17d7793a-c531-332f-80ed-ed8f729b1b38</id>
+    <id>urn:uuid:df6ede2a-7e26-3138-b4dd-d113f68e7763</id>
     <updated>2016-08-22T09:00:00-07:00</updated>
     <link href="http://www.mkelly.me/blog/caching-async-operations-via-promises/" />
     <author>

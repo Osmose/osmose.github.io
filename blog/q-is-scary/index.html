@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -94,7 +96,7 @@
 </pre></div>
 <p><strong>"When we insert Q() into sys.modules, all the globals become None"</strong></p>
 <p>What? Why?! I mean I can see how that's not an issue for modules, which are usually the only things inside <code>sys.modules</code>, but still. I tried chasing this down, but the entire <code>sys</code> module is <a href="https://github.com/python/cpython/blob/48fb766f70d9ca9d5934cbddbe8d8e7972cb6343/Python/sysmodule.c">written in C</a>, and that ain't my business.</p>
-<p>Most of the other bits inside <code>Q</code> are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for <code>__truediv__</code> and <code>__or__</code> for those weird operator versions of logging, etc. If you've never heard of callable types<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup> before, that's the reason why an instance of this class can be both called as a function and treated as a value.</p>
+<p>Most of the other bits inside <code>Q</code> are straightforward by comparison; a few helpers for outputting stuff cleanly, overrides for <code>__truediv__</code> and <code>__or__</code> for those weird operator versions of logging, etc. If you've never heard of callable types<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> before, that's the reason why an instance of this class can be both called as a function and treated as a value.</p>
 <p>So what's <code>__call__</code> do?</p>
 <h2>Ghost Magic</h2>
 <div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -144,7 +146,7 @@
 </ul>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p><a href="https://docs.python.org/3/reference/datamodel.html">Check out this page</a> and search for "Callable Types" and/or <code>__call__</code>.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p><a href="https://docs.python.org/3/reference/datamodel.html">Check out this page</a> and search for "Callable Types" and/or <code>__call__</code>.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

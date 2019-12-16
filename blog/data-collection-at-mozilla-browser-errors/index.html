@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -59,7 +61,7 @@
 <h2>Maybe JavaScript errors are a bad thing</h2>
 <p>The user interface of Firefox is written in JavaScript (along with <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL">XUL</a>, HTML, and CSS). JavaScript powering the UI is “privileged” JavaScript, which is separate from JavaScript in a normal webpage, and can do things that normal webpages cannot do, such as read the filesystem.</p>
 <p>When something goes wrong and an error occurs in this privileged JavaScript (let’s call them “browser errors”), it ends up logged to the <a href="https://developer.mozilla.org/en-US/docs/Tools/Browser_Console">Browser Console</a>. Most users aren’t looking at the Browser Console, so these errors often go unnoticed.</p>
-<p>While working on <a href="https://wiki.mozilla.org/Firefox/Shield">Shield</a>, I found that our QA cycle<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup> involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the <a href="https://www.mozilla.org/en-US/firefox/channel/desktop/">Nightly channel</a> before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?<sup class="footnote-ref" id="fnref-2"><a href="#fn-2" rel="footnote">2</a></sup></p>
+<p>While working on <a href="https://wiki.mozilla.org/Firefox/Shield">Shield</a>, I found that our QA cycle<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> involved a lot of time noticing and reporting errors in the Browser Console. Our code would often land on the <a href="https://www.mozilla.org/en-US/firefox/channel/desktop/">Nightly channel</a> before QA review, so why couldn’t we just catch errors thrown from our code and report them somewhere?<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup></p>
 <h2>So let’s a great plan</h2>
 <p>I told my boss a few times that browser error collection was a problem that I was interested in solving. I was pretty convinced that there was useful info to be gleaned from collecting these errors, but my beliefs aren’t really enough to justify building a production-quality error collection service. This was complicated by the fact that errors may contain info that can personally identify a user:</p>
 <ul>
@@ -121,16 +123,16 @@
     It’s important to note that this mechanism doesn’t need to be, say, a checkbox in the preferences UI. Depending on the context of the data collection, an about:config preference or some other mechanism may be good enough.</dd>
 </dl><h3>Rereing Viewquest?</h3>
 <p>In certain cases, requests may be escalated to Mozilla’s legal team if they involve changes to our privacy policy or other special circumstances. In the case of browser error collection, we wanted a legal review to double-check whether a user having used private browsing mode was considered category 2 or 3 data, as well as to approve our proposal for collecting category 3 data in error messages and file paths.</p>
-<p>Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment<sup class="footnote-ref" id="fnref-3"><a href="#fn-3" rel="footnote">3</a></sup>. Legal approved the plan, which we implemented using built-in Sentry access control.</p>
+<p>Our approach was to mimic what Mozilla already does with crashes; we collect the data and restrict access to the data to a subset of employees who are individually approved access. This helps make the data accessible only to people who need it, and their access is contingent on employment<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>. Legal approved the plan, which we implemented using built-in Sentry access control.</p>
 <h2>Welcome to errortown</h2>
 <p>With code and privacy review finished, I landed the patch and waited patiently for Sentry to start receiving errors. And it did!</p>
 <p>Since we started receiving the data, I’ve spent most of my time recruiting Firefox developers who want to search through the errors we’re collecting, and refining the data we’re collecting to make it more more useful to those developers. Of course, changes to the data collection require new privacy reviews, although the smaller the changes are, the easier it is to fill out and justify the data collection.</p>
 <p>But from my standpoint as a Mozilla employee, these data reviews are the primary way I see Mozilla making good on its promise to respect user privacy and avoid needless data collection. A lot of thought has gone into this process, and I can personally attest to their effectiveness.</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>Actually, we already do collect crashes as part of the <a href="http://socorro.readthedocs.io/en/latest/">Socorro</a> project, which I currently work on. But Socorro does not collect any info about the browser errors in question.<a href="#fnref-2" rev="footnote">&#8617;</a></p></li>
-<li id="fn-3"><p>Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.<a href="#fnref-3" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>Firefox uses tons of automated testing, but we also have manual testing for certain features. In Shield's case, the time being wasted was in the manual phase.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>Actually, we already do collect crashes as part of the <a href="http://socorro.readthedocs.io/en/latest/">Socorro</a> project, which I currently work on. But Socorro does not collect any info about the browser errors in question.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Only some parts of crash data are actually private, and certain contributors who sign an NDA are also allowed access to that private data. We use centralized authorization to control access.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

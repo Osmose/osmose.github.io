@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -51,11 +53,11 @@
       mozilla
     </span>
   </div>
-  <p>Mozilla hosts a few <a href="http://www.list.org/">Mailman</a> instances<sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.</p>
+  <p>Mozilla hosts a few <a href="http://www.list.org/">Mailman</a> instances<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>, and I run a few mailing lists on them. Our interface for managing incoming spam is... okay.</p>
 <p><a href="../../blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"><img alt="Mailman default admindb interface" src="/blog/mailman-admin-helper-mildly-easier-mailman-spam-management/mailman_before.png"></a></p>
 <p>The form inputs are <em>tiny</em>. And it takes, like, 3 clicks to discard and blacklist spam per-sender. And, because I only learned about the options for filtering by spam headers within the past month, I had to use this interface on a daily basis for years.</p>
 <p>Finally, about a year or so ago, I got fed up and wrote a bookmarklet that auto-clicked every form element needed to discard and blacklist every email on the page. Since it's rare for the lists I moderate to get legitimate emails that are marked for moderation, I didn't need anything more complex.</p>
-<p>However, we recently updated our Mailman pages to use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">CSP</a>, specifically the <code>script-src none</code> directive. Because the pages no longer accept <em>any</em> URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative<sup class="footnote-ref" id="fnref-2"><a href="#fn-2" rel="footnote">2</a></sup>.</p>
+<p>However, we recently updated our Mailman pages to use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">CSP</a>, specifically the <code>script-src none</code> directive. Because the pages no longer accept <em>any</em> URL as valid for script execution, my bookmarklet stopped working. I searched online for workarounds and didn't find anything informative<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>.</p>
 <p>Luckily, I happen to have experience making <a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions">WebExtensions</a> that inject <a href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Content_scripts">content scripts</a> into web pages. It's as simple as creating a <code>manifest.json</code> file:</p>
 <div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;manifest_version&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
@@ -89,8 +91,8 @@
 <p>Big thanks to the Add-ons team and community for making WebExtensions super-easy to use!</p>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>I'm not entirely sure why we have two, but it's cool.<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>I did find <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=866522">bug 866522</a>, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.<a href="#fnref-2" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>I'm not entirely sure why we have two, but it's cool.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>I did find <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=866522">bug 866522</a>, which discusses the reason bookmarklets don't work with CSP, as well as some proposed fixes to Firefox and the (in my opinion, correct) wisdom that bookmarklets are a dead-end anyway.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 

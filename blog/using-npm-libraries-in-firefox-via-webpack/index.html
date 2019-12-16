@@ -28,6 +28,8 @@
         </li>
         <li  class="active">
           <a href="../../blog/">Blog</a>
+        <li >
+          <a href="../../music/">Music</a>
         </li>
         <li><a href="https://twitter.com/osmose">@Osmose</a></li>
         <li><a href="https://github.com/osmose/">Github</a></li>
@@ -109,7 +111,7 @@
 <span class="p">};</span>
 </pre></div>
 <p>(See also <a href="https://github.com/mozilla/normandy/pull/877">the pull request itself</a>.)</p>
-<p>Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in <code>node_modules</code><sup class="footnote-ref" id="fnref-1"><a href="#fn-1" rel="footnote">1</a></sup>. The output of this config is one file per entry point inside a <code>vendor</code> subdirectory. You can then import these files as if they were normal <code>.jsm</code> files:</p>
+<p>Each entry point in the config is a library that we want to use, with the key being the name we're using to export it, and the value being the path to its directory in <code>node_modules</code><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. The output of this config is one file per entry point inside a <code>vendor</code> subdirectory. You can then import these files as if they were normal <code>.jsm</code> files:</p>
 <div class="highlight"><pre><span></span><span class="nx">Cu</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="s2">&quot;resource://shield-recipe-client/vendor/mozjexl.js&quot;</span><span class="p">);</span>
 <span class="kr">const</span> <span class="nx">jexl</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">moxjexl</span><span class="p">.</span><span class="nx">Jexl</span><span class="p">();</span>
 </pre></div>
@@ -159,7 +161,7 @@
 </ul>
 <div class="footnotes">
 <hr>
-<ol><li id="fn-1"><p>Did you know that Webpack will automatically use the main module defined in <code>package.json</code> as the entry point if the path points to a directory with that file?<a href="#fnref-1" rev="footnote">&#8617;</a></p></li>
+<ol><li id="fn-1"><p>Did you know that Webpack will automatically use the main module defined in <code>package.json</code> as the entry point if the path points to a directory with that file?<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
